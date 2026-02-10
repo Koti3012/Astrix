@@ -1,0 +1,185 @@
+on join:
+    if {buffs::%player%} is not set:
+        set {buffs::%player%} to 4
+
+on death:
+    if attacker is a player:
+        if victim is a player:
+            add 1 to {buffs::%attacker%}
+            send minimessage from "<gradient:##9e6c07:##885d06> ⚡ You have killed an enemy and gained speed ⚡" to attacker
+            play sound "entity.experience_orb.levelup" with volume 20 at attacker
+            remove 1 from {buffs::%victim%}
+            send minimessage from "<gradient:##8a122d:##8a4712> You have died and lost speed☠️" to victim
+            play sound "block.beacon.deactivate" with volume 10 at victim
+            if {buffs::%victim%} < 1:
+                ban victim for 24 hour
+
+every 2 seconds:
+    loop all players:
+        set {_b} to {buffs::%loop-player%}
+        if {_b} = 1:
+            ban loop-player for 24 hours
+        else if {_b} <= 2:
+            apply potion effect of slowness of tier 2 to loop-player for 3 seconds
+        else if {_b} <= 3:
+            apply potion effect of slowness of tier 1 to loop-player for 3 seconds
+        else if {_b} = 5:
+            apply potion effect of speed of tier 1 to loop-player for 3 seconds
+        else if {_b} = 6:
+            apply potion effect of speed of tier 2 to loop-player for 3 seconds
+        else if {_b} >= 7:
+            apply potion effect of speed of tier 3 to loop-player for 3 seconds
+
+command /ability1:
+    cooldown: 30 seconds
+    cooldown message: "&c Flash smp| Your ability is on cooldown for %remaining time%"
+    trigger:
+        if {buffs::%player%} >= 8:
+            push player forward at speed 1.5
+            push player upwards at speed 0.5
+            send minimessage from "<gradient:##215fbc:##233e68>You have used Your dash ability!💨" to player
+            play sound "entity.player.levelup" with volume 5 at player
+
+command /ability2:
+    cooldown: 60 seconds
+    cooldown message: "&cFlash smp| Your ability is on cooldown for %remaining time%"
+    trigger:
+        if {buffs::%player%} >= 9:
+            loop all players in radius 10 of player where [input is not player]:
+                apply potion effect of levitation of tier 2 to loop-player for 10 seconds
+                send minimessage from "<gradient:##0a1318:##171717>You have used you levitating ability!" to player
+                play sound "entity.firework_rocket.launch" with volume 10 at player
+
+command /ability3:
+    cooldown: 90 seconds
+    cooldown message: "&cFlash smp | Your ability is on cooldown for %remaining time%"
+    trigger:
+        if {buffs::%player%} >= 10:
+            loop all players in radius 10 of player where [input is not player]:
+                summon lightning at loop-player
+                send minimessage from "<gradient:##3fff78:##1965c1>You have used your lightning ability" to player
+                play sound "entity.firework_rocket.twinkle" with volume 10 at player
+
+command /ability4:
+    cooldown: 120 seconds
+    cooldown message: "&cFlash smp | Your ability is on cooldown for %remaining time%"
+    trigger:
+        if {buffs::%player%} >= 11:
+            set {location::%uuid of player%} to player's location
+            delete {ability4::cooldown::%player%}
+            set {_shape} to sphere with radius 8
+            set particle of {_shape} to snowflake particle
+            draw shape {_shape} at player's location for 8 seconds
+            send "&bYou have used your shield bubble ability"
+            play sound "block.beacon.deactivate" with volume 10 at player
+
+on damage:
+    loop all players in radius 8 of {location::%uuid of victim%}:
+        if attacker is loop-player:
+            cancel event
+        else:
+            cancel event
+on projectile hit:
+    loop all players in radius 8 of {location::%uuid of victim%}:
+        if shooter is loop-player:
+            cancel event
+        else:
+            cancel event
+
+command /ability5:
+    cooldown: 150 seconds
+    cooldown message: "&cFlash smp | Your ability is on cooldown for %remaining time%"
+    trigger:
+        if {buffs::%player%} >= 12:
+            delete {ability5::cooldown::%player%}
+            apply potion effect of speed of tier 5 to player for 5 seconds
+            send "&5You have used your superspeed ability"
+            play sound "item.potion.drink" with volume 10 at player
+
+on load:
+    set {-s} to beacon named "&5Speedforce energy" with lore "&1Gain speed and become the fastest of all"
+
+command /flash:
+    permission: op
+    permission message: "&c You cant use this command lil bro"
+    trigger:
+        give player {-s}
+
+on rightclick:
+    if event-item is {-s}:
+        add 1 to {buffs::%player%}
+        send minimessage from "<gradient:##aa4d00:##8a2b0b>You have gotten faster By the speedforce energy" to player
+        remove 1 of {-s} from player
+
+command /withdraw:
+    trigger:
+        give player {-s}
+        remove 1 from {buffs::%player%}
+        send "&eYou have withdrew your speed! and your speed got reduced to %{buffs::%player%}%"
+
+command /speedforce:
+    trigger:
+        send "&bYour speed is %{buffs::%player%}%" to player
+
+on load:
+    set {-sword} to netherite sword named minimessage from "<gradient:##aa4d00:##8a2b0b>frostbound" with lore "freeze your enemies"
+
+command /frostbound:
+    permission: op
+    trigger:
+        give player {-sword}
+
+on rightclick:
+    if player's tool is {-sword}:
+        if {frostbound::cooldown::%player%} is set:
+            set {_timeleft} to difference between {frostbound::cooldown::%player%} and now
+            if {_timeleft} > 0 seconds:
+                send "&cFlash smp | Your ability is on cooldown for %{_timeleft}%" to player
+                stop
+            else:
+                delete {frostbound::cooldown::%player%}
+                set {_shape} to sphere with radius 10
+                set particle of {_shape} to snowflake particle
+                set {_loc} to location of player
+                draw shape {_shape} at {_loc} for 4 seconds
+
+                loop (players in radius 10 of player) except player:
+                    if loop-player is inside {_shape}:
+                        freeze loop-player for 6 seconds
+                        send "&bYou have used your frostbound ability" to player
+                        set {frostbound::cooldown::%player%} to now + 90 seconds
+on load:
+    set {-h} to shield named "&6Shield of Warriors"
+
+command /shield:
+    permission: op
+    trigger:
+        give player {-h}
+
+on rightclick with shield:
+    if player's tool is not {-h}:
+        stop
+    # cooldown check
+    if {warrior::cooldown::%player%} is set:
+        set {_timeleft} to difference between {warrior::cooldown::%player%} and now
+        if {_timeleft} > 0 seconds:
+            send "&cFlash smp | Your ability is on cooldown for %{_timeleft}%." to player
+            stop
+        else:
+            delete {warrior::cooldown::%player%}
+            set {_shape} to sphere with radius 5
+            set particle of {_shape} to flame particle
+            set {_loc} to location of player
+            draw shape {_shape} at {_loc} for 1 second
+
+        loop all players in radius 6 of player except player:
+            if loop-player is inside {_shape}:
+                push loop-player backwards at speed 4.5
+                push loop-player upwards at speed 2
+                send "&6You have used your ability and knocked back all your enemies!" to player
+                set {warrior::cooldown::%player%} to now + 120 seconds
+
+command /trust <text> [<online player>]
+    trigger:
+        if arg-1 is add:
+

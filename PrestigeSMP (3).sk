@@ -1,0 +1,2479 @@
+#Prestige smp plugin made by Ashd667
+
+on load:
+    set {Tracker} to recovery compass of mending named "&4&lTracking Compass" with lore "&7Track those at a cost..." with custom model data 3
+on right click:
+    if player's held item is recovery compass with custom model data 3:
+        set {_s} to 0
+        set {_Tracking::GUI1} to a new chest inventory with 6 row with name "&8Select Target"
+        loop all players:
+            set {_p} to loop-player
+            set slot {_s} of {_Tracking::GUI1} to {_p}'s skull named "%{_p}%" with lore "&6Click to &4&lTrack..."
+            add 1 to {_s}
+        wait 1 tick
+        open {_Tracking::GUI1} to player
+on inventory click:
+    loop all players:
+        if name of event-inventory is "&8Select Target":
+            cancel event
+            if event-item is a player head:
+                set {_uuid} to uuid of player
+                set {_T} to event-item's name
+                set {-Tplayer::%{_uuid}%} to {_T} parsed as player
+                set {_Tracking::GUI2} to a hopper inventory named "&a&lInput Lives"
+                play sound "entity.warden.heartbeat" with volume 4 to {-Tplayer::%{_uuid}%}
+                play sound "block.bell.use" with volume 10 and pitch 0.8 to {-Tplayer::%{_uuid}%}
+                play sound "ambient.cave" with volume 8 and pitch 0.8 to {-Tplayer::%{_uuid}%}       
+                open {_Tracking::GUI2} to player  
+                   
+                loop all items in player's inventory:
+                    if loop-item is {Tracker}:
+                        if durability of loop-item is not 0: 
+                            set durability of loop-item to durability of loop-item - 1
+                        else:
+                            set loop-item to air                    
+                            play sound "entity.item.break" at volume 10 with pitch 1 at player   
+on inventory close:
+	if name of event-inventory is "&a&lInput Lives":    
+		set {_amt} to amount of {Life} in player's current inventory
+		remove {_amt} of {life} from player's current inventory
+		set {_amt} to {_amt} * 20
+		set {_amt} to {_amt} * 60
+		set {_uuid} to player's uuid       
+		loop {_amt} times:
+			wait 1 tick  
+			Track(player, {-Tplayer::%{_uuid}%}) 
+function Track(p1: player, p2: player):
+    set {_v} to vector from {_p1}'s head to {_p2}'s head
+    set vector length of {_v} to 0.2
+    set {_loc} to the location 0.7 meters under {_p1}'s head
+    loop (distance between {_loc} and {_p2}) / 0.2 times:
+        add 1 to {_distance}
+        draw 1 dust using dustOption(rgb(202, 3, 3), 1) at {_loc} with force
+        set {_loc} to {_loc} ~ {_v}
+        if {_distance} = 35:
+            stop
+#Particle Trails
+on join:
+	if {Particles::%player's uuid%} is not set:
+		set {Particles::%player's uuid%} to true
+command /particle-trail:
+	trigger:	
+		if {Particles::%player's uuid%} is true:	
+			send "&c&lTurned off particle trail"
+			set {Particles::%player's uuid%} to false
+			stop      
+		if {Particles::%player's uuid%} is false:
+			send "&a&lTurned on particle trail"
+			set {Particles::%player's uuid%} to true
+			stop      
+on item despawn:
+	if event-item is a mace or {Crystal::Tide} or {Crystal::Inferno} or {Crystal::Storm} or {Crystal::Latency} or {Crystal::Stone} or {Crystal::Lumen} or {Crystal::Velocity} or {Crystal::Void} or {Crystal::Sculk} or {Crystal::Moon} or {Crystal::Wrath} or {Crystal::Brute} or {Crystal::Glacier} or {Crystal::Toxin} or {Crystal::Lux}:
+		cancel event
+function setName(e: entity):
+	set {_amount} to item amount of item of {_e}
+	if name of item of {_e} is set:
+		set {_m::2} to text component of name of item of {_e}
+	else:
+		set {_m::2} to translate component of item of {_e}
+		set color format of {_m::2} to light blue
+
+	set {_m} to merge components {_m::*}
+	set component entity display name of {_e} to {_m}
+
+on item spawn:
+	setName(event-entity) if event-item is {ShockWaveHammer}
+on load:
+	set {ShockWaveHammer} to mace of density 3, wind burst 2, unbreaking 3, mending, fire aspect 1 named "<##d9c618>&lsʜᴏᴄᴋᴡᴀᴠᴇ ʜᴀᴍᴍᴇʀ" with lore "&f&lᴘᴏᴡᴇʀ ᴏғ ᴢᴇᴜs ғᴏʀɢᴇᴅ ɪɴᴛᴏ ᴀ ʜᴀᴍᴍᴇʀ", "{{{{{", "<##d9c618>ᴘᴀssɪᴠᴇs", "&7- +3 ᴍᴀᴄᴇ ʀᴇᴀᴄʜ ɪɴ ʀᴀɪɴ", "&7- ᴇᴠᴇʀʏ 5 ᴍᴀᴄᴇ sʟᴀᴍs sᴜᴍᴍᴏɴ ᴀ ᴛʜᴜɴᴅᴇʀ ʙᴏʟᴛ", "&7- ᴘᴇʀᴍᴀ ʜᴀsᴛᴇ 3 ᴡʜᴇɴ ʜᴇʟᴅ", "{{{{", "&e&lᴀʙɪʟɪᴛʏ", "    &e&lsʜᴏᴄᴋᴡᴀᴠᴇ sʟᴀᴍ", "    &7sᴜᴍᴍᴏɴ ᴀ ᴘᴏᴡᴇʀғᴜʟ ᴛʜᴜɴᴅᴇʀ sᴍᴀsʜ ᴛʜᴀᴛ ǫᴜᴀᴋᴇs ᴛʜᴇ ᴡᴏʀʟᴅ"
+command /givehammer:
+	permission: op
+	trigger:
+		give player {ShockWaveHammer}
+
+on item merge:
+	set {_f} to future event-entity
+	wait 1 tick
+	setName({_f}) if event-item is {ShockWaveHammer}
+              
+
+on explode: 
+	if event-entity is a mace or {Crystal::Tide} or {Crystal::Inferno} or {Crystal::Storm} or {Crystal::Latency} or {Crystal::Stone} or {Crystal::Lumen} or {Crystal::Velocity} or {Crystal::Void} or {Crystal::Sculk} or {Crystal::Moon} or {Crystal::Wrath} or {Crystal::Brute} or {Crystal::Glacier} or {Crystal::Toxin} or {Crystal::Lux}:
+		cancel event
+
+on damage:
+	if victim is a dropped item:
+		if item of victim is a mace or {Crystal::Tide} or {Crystal::Inferno} or {Crystal::Storm} or {Crystal::Latency} or {Crystal::Stone} or {Crystal::Lumen} or {Crystal::Velocity} or {Crystal::Void} or {Crystal::Sculk} or {Crystal::Moon} or {Crystal::Wrath} or {Crystal::Brute} or {Crystal::Glacier} or {Crystal::Toxin} or {Crystal::Lux}:
+			cancel event
+on right click:
+	if player's held item is {Crystal::Reroll}:
+		remove 1 of {Crystal::Reroll} from player
+		randomPrestige(player)
+
+
+
+on death of a player:
+	if attacker is invisible:
+		set death message to "%victim% was slain by &k676"
+function Prestigegui(p: player):
+	set {_gui} to chest inventory with 3 rows named "|||||||||&f봏"
+
+	set slot 2 of {_gui} to {Crystal::Tide}
+	set slot 3 of {_gui} to {Crystal::Inferno}
+	set slot 4 of {_gui} to {Crystal::Brute}
+	set slot 5 of {_gui} to {Crystal::Stone}
+	set slot 6 of {_gui} to {Crystal::Latency}
+	set slot 9 of {_gui} to red stained glass named "&c&lCLOSE"
+	set slot 11 of {_gui} to {Crystal::Void}
+	set slot 12 of {_gui} to {Crystal::Velocity}
+	set slot 13 of {_gui} to {Crystal::Lumen}
+	set slot 14 of {_gui} to {Crystal::Sculk}
+	set slot 15 of {_gui} to {Crystal::Wrath}
+	set slot 17 of {_gui} to green stained glass named "&a&lNEXT"
+	set slot 20 of {_gui} to {Crystal::Moon}
+	set slot 21 of {_gui} to {Crystal::Storm}
+	set slot 22 of {_gui} to {Crystal::Glacier}
+	set slot 23 of {_gui} to {Crystal::Toxin}
+	set slot 24 of {_gui} to {Crystal::Lux}
+	open {_gui} to {_p}
+
+on inventory click:
+	if name of event-inventory is "|||||||||&f봏":
+		cancel event
+		if clicked slot is 9:
+			close player's inventory
+		if clicked slot is 17:
+			close player's inventory
+			mythicgui(player)
+function mythicgui(p: player):
+	set {_gui} to chest inventory with 1 rows named "|||||||||&f蒃"
+	set slot 0 of {_gui} to red stained glass named "&c&lBACK"
+	set slot 2 of {_gui} to {HydroReaver}
+	set slot 4 of {_gui} to {Labryinth}
+	set slot 6 of {_gui} to {Manaplate}
+	set slot 8 of {_gui} to {BlossomCrown}
+	open {_gui} to {_p}
+on inventory click:
+	if name of event-inventory is "|||||||||&f蒃":
+		cancel event
+		if clicked slot is 0:
+			close player's inventory
+			Prestigegui(player)
+command /info:
+	trigger:
+		Prestigegui(player)
+
+
+
+on load:
+	
+	set {Crystal::Tide} to nether star named "&3&lTide &r&3🌊" with custom model data 6 with lore "&3&lPassives:", "&3🌊 Conduit power 2", "&3🌊 Extra damage while raining", "&3&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "&3Charge up a tidal wave that deals heavy damage and durability when shot &f&l(140s CD)", "&3&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "&3Riptide In front of where you are looking at &f&l(30s CD)"
+	set {Crystal::Inferno} to nether star named "&6&lInferno 🔥" with custom model data 1 with lore "&6&lPassives:", "&6🔥 &6Fire resistance", "&6🔥 &6Auto smelt all items", "&6🔥 &6Swim in lava", "&6&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "&6A Volcano that launches people into the sky and sets them on fire &f&l(40s CD)", "&6&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "&6A meteor that falls down, if a non trusted player is hit they get stunned for 3 seconds &f&l(70s CD)"
+	set {Crystal::Storm} to nether star named "&e&lStorm ⚡" with custom model data 5 with lore "&e&lPassives:", "&e⚡ Haste 2", "&e⚡ Extra damage while raining or thundering", "&e⚡ Every 15 hits strike lightning", "&e&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "&eYou get 2 electric Dashes &f&l(80s CD)", "&e&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "&eMark victims and strike them down with lightning &f&l(70s CD)"
+	set {Crystal::Latency} to nether star named "<##e2ca7c>&lLatency 🕗" with custom model data 8 with lore "<##dbb439>&lPassives:" and "<##e2ca7c>🕗 Increased speed when hitting someone" and "<##e2ca7c>🕗 Increased mining speed when you mine a block" and "<##dbb439>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:" and "<##e2ca7c>Increase enemies cooldowns to their max and clear potion effects for 15 seconds &f&l(130s CD)" and "<##dbb439>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:" and "<##e2ca7c>Scramble all nearby victims inventories &f&l(70s CD)"
+	set {Crystal::Stone} to nether star named "<##2cdd4d>&lStone ⚓" with custom model data 7 with lore "<##1b9631>&lPassives:", "<##2cdd4d>⚓ Less Knockback", "<##1ea436>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "<##2cdd4d>Summon falling dripstone that strikes down enemies 2&f&l(100s CD)", "<##1ea436>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "<##2cdd4d>Summon a zone that slows down peoples gravity letting u crit faster and disabling their wind charges and cobwebs &f&l(80s CD)"
+	set {Crystal::Lumen} to nether star named "<##f25ae8>&lLumen 🩷" with custom model data 4 with lore "<##c748bf>&lPassives:", "<##a23c9b>🩷 Regen 1", "<##a23c9b>🩷 Plus 4 hearts", "<##a23c9b>🩷 See victims health after 10 hits for 5 seconds", "<##983792>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "<##a23c9b>Heals you and any allies within a small radius around you &f&l(50s CD)", "<##983792>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "<##a23c9b>Set a random player near you to 8 hearts for 20 seconds &f&l(70s CD)"
+	set {Crystal::Velocity} to nether star named "<##6696E3>Velocity" with custom model data 2 with lore "<##2F476B>&lᴘᴀssɪᴠᴇs:", "<##6696E3>⏩ <##6696E3>Speed 1", "<##6696E3>⏩ No fall damage", "<##6696E3>⏩ <##6696E3>Random Chance to get increased speed (Maxing out at 10)", "<##6696E3>⏩ <##6696E3>Wind Charge Mace", "<##2F476B>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ:", "<##6696E3>Perform a dash that stuns people near you &f&l(60s CD)", "<##2F476B>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ:", "<##6696E3>Do a combo rush multipling in damage everytime you land it &f&l(100s CD)"
+	set {Crystal::Void} to nether star named "<##873d83>Void" with custom model data 12 with lore "<##6c2c5b>&lᴘᴀssɪᴠᴇs", "<##873d83>Double Potion times", "<##873d83>Double Jump &f&l(10s CD)", "<##6c2c5b>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "<##873d83>Teleport 10 blocks infront of you", "<##873d83>This goes through blocks &f&l(15s CD)",  "<##6c2c5b>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##873d83>Curse All nearby victims. You deal extra damage to all cursed victims, the victims will stay cursed for 20 seconds &f&l(90s CD)"	
+	set {Crystal::Sculk} to nether star named "<##362c62>Sculk" with custom model data 13 with lore "<##1f1b45>ᴘᴀssɪᴠᴇs", "<##191645>👁️ Regeneration 3 on Sculk", "<##191645>👁️ Perm Invis", "<##191645>👁️Wardens don't attack you", "<##1f1b45>ғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "<##191645>An instant Sonic boom dealing 4 hearts of damage &f&l(50s CD)", "<##1f1b45>sᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##191645>Shield cannot be stunned for 15 seconds &f&l(80s CD)"
+	set {Crystal::Moon} to nether star named "<##656d7a>&lMoon 🌙" with custom model data 3 with lore "<##2e3239>ᴘᴀssɪᴠᴇs", "<##656d7a>🌙 Resistance 1", "<##656d7a>ғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "<##656d7a>A glowing Moon circle where you steal important items around you &f&l(100s CD)", "<##656d7a>sᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##656d7a>A Moon Ring where you gain haste and debuff enemies &f&l(90s CD)"
+	set {Crystal::Wrath} to nether star named "&7Wrath" with custom model data 14 with lore "<##4F4644>&lᴘᴀssɪᴠᴇs:", "&7👻 Invisible when you don't move", "&7👻 Random chance to apply wither to your target", "<##4F4644>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "&7Summons a spectral tear that pulls enemies into it  &f&l(80s CD)", "<##4F4644>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "&7Summon a powerful rift that drains your enemies and flings them around &f&l(90s CD)"
+	set {Crystal::Brute} to nether star named "<##E05A3F>&lBrute" with custom model data 11 with lore "<##AB270C>&lᴘᴀssɪᴠᴇs:", "<##AB270C>🗡️ Strength 1", "<##AB270C>🗡️ Crossbows deals extra damage", "<##AB270C>🗡️ 20%% for your shield not to disable", "<##E05A3F>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "<##AB270C>Auto Crit for 15 seconds &f&l(80s CD)", "<##E05A3F>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##AB270C>Disable enemies weapons and shields for 15 seconds &f&l(100s CD)"
+	set {Crystal::Glacier} to nether star named "<##72CFCA>Glacier" with custom model data 9 with lore "<##72CFCA>&lᴘᴀssɪᴠᴇs:", "<##72CFCA>❄️ <##72CFCA>Speed 10 on ice and any type of snow", "<##72CFCA>❄️ <##72CFCA>Every 15 hits disable your victims wind charges for 5 seconds", "<##72CFCA>&lғɪʀsᴛ  ᴀʙɪʟɪᴛʏ", "<##72CFCA>A massive Glacier engulfs a 15 block radius for 15 seconds &f&l(120s CD)", "<##72CFCA>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##72CFCA>Freeze a random target around you for 5 seconds making them glow aqua &f&l(70s CD)"
+	set {Crystal::Toxin} to nether star named "&7Toxin" with custom model data 15 with lore "&8&lᴘᴀssɪᴠᴇs:", "&7🕸️ Walk faster in cobwebs", "&7🕸️ All spiders are friendly to you", "&7🕸️ Regen in cobwebs and poison enemies if their in them", "&8&lғɪʀsᴛ  ᴀʙɪʟɪᴛʏ", "&7All nearby cobwebs gets cleared &f&l(15s CD)", "&8&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "&7Cast a ring that slows everyone down near you &f&l(90s CD)"
+	set {Crystal::Lux} to nether star with custom model data 16 named "<##ddad22>Lux" with lore "<##ddad22>&lᴘᴀssɪᴠᴇs:", "<##ddad22>In direct sunlight do extra damage", "<##ddad22>50%% for utilities to not be used", "<##ddad22>Hero Of The Village 10", "<##ddad22>&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "<##ddad22>Summon a energy sun that flash bangs enemies every 2 seconds they are in it while also doing damage and having a 50%% chance to cancel their utilities &f&l(120s CD)", "<##ddad22>&lsᴇᴄᴏɴᴅ ᴀʙɪʟɪᴛʏ", "<##ddad22>Become intangible, allowing all attacks and abilities to pass through you harmlessly. You then reappear with a burst of energy that damages and knocks back enemies who were very close. &f&l(80s CD)"
+#Mythics 
+	set {FrostScythe} to unbreakable netherite sword named "&b&lFrost Scythe" with lore "&f&lғɪʀsᴛ ᴀʙɪʟɪᴛʏ", "     &b&lRAY OF FROST", "        &bFreeze a player for  5 seconds"
+	set {LatencyDial} to clock named "<##e2ca7c>&lTime Dial"
+	set {ManaPlate} to unbreakable netherite chestplate of protection 3, unbreaking 3, mending named "&5&lThe Mana Plate" with lore "<##6c2c5b>&lᴘᴀssɪᴠᴇs", "<##6c2c5b>- &fProtection 3", "<##6c2c5b>- &fBlast Protection 5", "<##6c2c5b>- &fCooldowns Decrease Faster"
+	set {Labryinth} to unbreakable crossbow of piercing 4, quick charge 3 named "<##0C0C1F>&lThe Labyrinth" with lore "<##0C0C1F>Shoot a powerful sonic boom &f&l(30s CD)"
+	set {HydroReaver} to unbreakable netherite sword of sharpness 3, knockback 1, sweeping edge 3, looting 3, unbreaking 3, mending with custom model data 1 named "&f&lTide's Fang" with lore "<##1B827C>&lᴘᴀssɪᴠᴇs:", "<##72CFCA>🌊 <##72CFCA>All of Tide's Passives", "<##72CFCA>🌊 <##72CFCA>4 Block Reach", "<##1B827C>&lᴀʙɪʟɪᴛʏ", "<##72CFCA>Riptide infront of where you are looking", "<##72CFCA>On Sneak right click while in water &f&l(30s CD)", "|||||||||||||"
+	apply attribute modifier to {HydroReaver}:
+		id: "minecraft:range"
+		attribute: entity interaction range
+		amount: 1
+		slot: mainhand_slot_group
+		operation: add_number
+	apply attribute modifier to {HydroReaver}:
+		id: "minecraft:base_attack_speed"
+		attribute: attack speed
+		amount: -2.4
+		slot: mainhand_slot_group
+		operation: add_number
+	apply attribute modifier to {HydroReaver}:
+		id: "minecraft:base_attack_damage"
+		attribute: attack damage
+		amount: 7
+		slot: mainhand_slot_group
+		operation: add_number
+	set {BlossomCrown} to unbreakable netherite helmet of protection 3, unbreaking 3, mending, aqua affinity, respiration 3 with custom model data 1 named "<##b53a9b>&lThe Blossom Crown" with lore "&d&lᴘᴀssɪᴠᴇs:", "   &e- &d20 hearts", "   &e- &dEverytime you hit someone you heal some of your health"
+on death:
+	if {Prestige::%victim's uuid%} is set:
+		drop {Crystal::%{Prestige::%victim's uuid%}%} at location of victim
+		delete {Prestige::%victim's uuid%}
+#Action bars cd and on join stuff 
+#trust
+#Hits
+on damage of a player:
+	if attacker is a player:
+		if victim is a player:
+			if {Prestige::%attacker's uuid%} is "Storm":
+				add 1 to {hits::%attacker's uuid%} 
+				if {hits::%attacker's uuid%} is 15:
+					set {hits::%attacker's uuid%} to 0
+					strike lightning effect at location of victim
+					absoluteDamage(victim, attacker, 1.5)
+			if {Prestige::%attacker's uuid%} is "Glacier":
+				add 1 to {hits::%attacker's uuid%} 
+				if {hits::%attacker's uuid%} is 15:
+					set {hits::%attacker's uuid%} to 0
+					set victim's freeze time to 8 seconds
+					set item cooldown of wind charge for victim to 10 seconds
+			if {Prestige::%attacker's uuid%} is "Lumen":
+				add 1 to {hits::%attacker's uuid%} 
+				if {hits::%attacker's uuid%} is 10:
+					set {hits::%attacker's uuid%} to 0
+					showhealth(victim)
+function showhealth(p: player):
+	summon text display at location of {_p}
+	set billboard of last spawned text display to center
+	set {_health} to last spawned text display
+	while {_health} is alive:
+		wait 1 tick
+		teleport {_health} to location 2.2 blocks above {_p}
+		set the text of {_health} to "&c&l💗%{_p}'s health%"
+		add 1 to {_t}
+		if {_t} is 100:
+			kill {_health}
+			exit loop			
+on swap hand items:
+	player is not sneaking
+	if {Controls::%player's uuid%} is true:
+		cancel event
+		make player execute command "/ability1"
+on swap hand items:
+	player is sneaking
+	if {Controls::%player's uuid%} is true:
+		cancel event
+		make player execute command "/ability2"
+command /control <text>:
+	trigger:
+		if arg-1 is "Offhand":
+			send "&7Turned on offhand to use abilities"
+			set {Controls::%player's uuid%} to true
+		if arg-1 is "Command":
+			send "&7Turned on commands to use abilities"
+			set {Controls::%player's uuid%} to false
+
+
+on tab complete of "/setPrestige":
+	set tab completions for position 1 to all players
+	set tab completions for position 2 to "Inferno", "Tide", "Storm", "Latency", "Stone", "Lumen", "Velocity", "Toxin", "Void", "Sculk", "Moon", "Wrath", "Glacier", "Brute", "Lux"
+on tab complete of "/control":
+	set tab completions for position 1 to "Offhand", "Command"
+
+on tab complete of "/givemythic":
+	set tab completions for position 1 to "Manaplate", "HydroReaver", "Labryinth", "BlossomCrown", "Fubuki", "Celeste Impact", "Trance"
+
+
+command /setprestige <player> <text>:
+	permission: op
+	trigger:
+		set {Prestige::%arg-1's uuid%} to arg-2
+		send "&aYour Prestige is now %name of {Crystal::%arg-2%}%" to player
+  
+command /trust [<text>] [<offlineplayer>]:
+	trigger:
+		set {_arg} to arg-2
+		if arg-1 is "list":
+			set {_s} to 0
+			set {_Prestige.Trusted.GUI} to a new chest inventory with 3 row with name "&aᴛʀᴜsᴛᴇᴅ ᴘʟᴀʏᴇʀs"
+			loop {Trusted::%player's uuid%::*}:
+				send "&a&lTrusted Players:" to player	
+				send "    &7- &a%loop-value%" to player
+
+		if arg-1 is "add":
+			if arg-2 is set:
+				if {Trusted::%player's uuid%::*} contains {_arg}:
+					send "&c%arg-2% &cis already trusted!" to player
+						
+						
+						
+						
+				else:
+											
+					add {_arg} to {Trusted::%player's uuid%::*}
+						
+					send "&aTrusted &a&l%arg-2%" to player
+											
+						
+		if arg-1 is "remove":
+			if arg-2 is set:
+				if {Trusted::%player's uuid%::*} contains {_arg}:
+					send "&cUntrusted &c&l%arg-2%" to player
+					remove {_arg} from {Trusted::%player's uuid%::*}
+on join:
+	while player is online:
+		wait 1 second
+		if player's chestplate is not {ManaPlate}:
+			if {CD1::%player's uuid%} is not -1:
+				remove 1 from {CD1::%player's uuid%}	
+			if {CD1::%player's uuid%} is 0:
+				set {CD1::%player's uuid%} to ""
+on join:
+	while player is online:
+		wait 1 second
+		if player's chestplate is {ManaPlate}:
+			if {CD1::%player's uuid%} is not -1:
+				remove 2 from {CD1::%player's uuid%}	
+			if {CD1::%player's uuid%} is less than 1:
+				set {CD1::%player's uuid%} to ""
+
+on join:
+	set {CD1::%player's uuid%} to ""
+	set {CD2::%player's uuid%} to ""
+	
+on join:
+	while player is online:
+		wait 1 second
+		if player's chestplate is not {ManaPlate}:
+			if {CD2::%player's uuid%} is not -1:
+				remove 1 from {CD2::%player's uuid%}	
+			if {CD2::%player's uuid%} is 0:
+				set {CD2::%player's uuid%} to ""
+on join:
+	while player is online:
+		wait 1 second
+		if player's chestplate is {ManaPlate}:
+			if {CD2::%player's uuid%} is not -1:
+				remove 2 from {CD2::%player's uuid%}	
+			if {CD2::%player's uuid%} is less than 1:
+				set {CD2::%player's uuid%} to ""
+command /cooldown:
+	permission: op
+	trigger:
+		send "&aReseted all cooldowns" to player
+		set {CD1::%player's uuid%} to ""
+		set {CD2::%player's uuid%} to ""
+		set item cooldown of {Labryinth} for player to 0 seconds
+		set item cooldown of {HydroReaver} for player to 0 seconds
+		set item cooldown of {BlossomCrown} for player to 0 seconds
+		set {Dashes::%player's uuid%} to 2
+		set {doublejump::%player's uuid%} to 0
+on join:
+	while player is online:
+		wait 1 tick
+		if {Prestige::%player's uuid%} is "Tide":
+			apply conduit power tier 2 without particles to player for 1 second replacing existing effect
+			send action bar "&f&l%{CD1::%player's uuid%}% 🧛 &r &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(light blue, light blue, 0.7)
+				draw the shapes {_particle} at player      
+		if player has {HydroReaver}:
+			apply conduit power tier 2 without particles to player for 1 second replacing existing effect
+			set {_splash} to a circle with radius 0.5
+			set particle of {_splash} to 10 dust particle using dustOption(blue, 0.5)
+			draw the shapes {_splash} at player
+		if {Prestige::%player's uuid%} is "Inferno":
+			apply fire resistance tier 1 without particles to player for 1 second replacing existing effect
+			send action bar "&f&l%{CD1::%player's uuid%}% 𰀁 &r &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(orange, orange, 0.7)
+				draw the shapes {_particle} at player      
+			if player is in lava:
+				set flight mode of player to true
+				set flight speed of player to 0.05		
+			else:
+				if player's gamemode is not creative or spectator:
+					set flight mode of player to false
+					set flight speed of player to 0.1
+		if {Prestige::%player's uuid%} is "Storm":
+			apply haste tier 2 without particles to player for 1 second replacing existing effect
+			set {Dashes::%player's uuid%} to {Dashes::%player's uuid%} ? 2
+			send action bar "&e&l%{Dashes::%player's uuid%}% &f&l%{CD1::%player's uuid%}% 👰 &r &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(yellow, yellow, 0.7)
+				draw the shapes {_particle} at player        
+		if {Prestige::%player's uuid%} is "Latency":
+			send action bar "&f&l%{CD1::%player's uuid%}% 뎂  &r뎄 &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(yellow, gold, 0.7)
+				draw the shapes {_particle} at player            
+		if {Prestige::%player's uuid%} is "Stone":
+			send action bar "&f&l%{CD1::%player's uuid%}% 🍋 &r &f&l%{CD2::%player's uuid%}%"
+			set player's knockback resistance attribute to 0.25
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(green, green, 0.7)
+				draw the shapes {_particle} at player            
+			if block under player is stone:
+				apply speed tier 1 to player for 1 second replacing existing effect
+		else:
+			set player's knockback resistance attribute to 0
+		
+		if {Prestige::%player's uuid%} is "Lumen":
+			send action bar "&f&l%{CD1::%player's uuid%}% 🐬 &r &f&l%{CD2::%player's uuid%}%"
+			apply health boost tier 2 to player for 1 second replacing existing effect
+			apply regeneration tier 1 to player for 1 second replacing existing effect
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(pink, pink, 0.7)
+				draw the shapes {_particle} at player       
+		if {Prestige::%player's uuid%} is "Velocity":
+			send action bar "&f&l%{CD1::%player's uuid%}% 𰀀 &r &f&l%{CD2::%player's uuid%}%"
+			apply speed tier 1 to player for 1 second replacing existing effect
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(dark blue, dark blue, 0.7)
+				draw the shapes {_particle} at player               
+		if {Prestige::%player's uuid%} is "Void":
+			send action bar "&f&l%{CD1::%player's uuid%}% 랬 &r랯 &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(purple, purple, 0.7)
+				draw the shapes {_particle} at player                 
+		if {Prestige::%player's uuid%} is "Sculk":
+			send action bar "&f&l%{CD1::%player's uuid%}% 댐 &r댒 &f&l%{CD2::%player's uuid%}%"
+			apply invisibility tier 1 to player for 1 second replacing existing effect
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(dark blue, light blue, 0.7)
+				draw the shapes {_particle} at player       
+			loop all entities in radius 50 of player:
+				if loop-entity is warden:
+					set the anger level of loop-entity towards player to 0
+			if block under player is sculk:
+				apply regeneration tier 3 to player for 3 second replacing existing effect
+		if {Prestige::%player's uuid%} is "Moon":
+			send action bar "&f&l%{CD1::%player's uuid%}% 🦪 &r &f&l%{CD2::%player's uuid%}%"
+			apply resistance tier 1 to player for 1 second replacing existing effect
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(grey, white, 0.7)
+				draw the shapes {_particle} at player          
+		if {Prestige::%player's uuid%} is "Wrath":
+			send action bar "&f&l%{CD1::%player's uuid%}% 썁 &r썃 &f&l%{CD2::%player's uuid%}%"	
+			set {_loc} to location of player
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(grey, grey, 0.7)
+				draw the shapes {_particle} at player                  
+			wait 5 ticks
+			if {_loc} = player's location:
+				apply invisibility tier 1 to player for 1 second replacing existing effect       
+		if {Prestige::%player's uuid%} is "Brute":
+			send action bar "&f&l%{CD1::%player's uuid%}% 뛭 &r뛯 &f&l%{CD2::%player's uuid%}%"	
+			apply strength tier 1 to player for 1 second replacing existing effect
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(red, red, 0.7)
+				draw the shapes {_particle} at player                  
+		if {Prestige::%player's uuid%} is "Glacier":
+			send action bar "&f&l%{CD1::%player's uuid%}% 鮢 &r鮤 &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(light blue, white, 0.7)
+				draw the shapes {_particle} at player      
+			if block under player is packed ice or ice or blue ice or snow or snow block:
+				apply speed tier 5 to player for 1 second replacing existing effect
+		if {Prestige::%player's uuid%} is "Toxin":
+			send action bar "&f&l%{CD1::%player's uuid%}% 涚 &r涜 &f&l%{CD2::%player's uuid%}%"
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(dark green, white, 0.7)
+				draw the shapes {_particle} at player      
+			apply weaving tier 255 without particles to player for 1 second replacing existing effect
+			if checkweb(player) is true:
+				apply regeneration tier 2 to player for 1 second replacing existing effect		
+			loop all players in radius 15 of player:
+				if loop-player is not player:
+					if {Trusted::%player's uuid%::*} does not contain loop-player:
+						if checkweb(loop-player) is true:
+							apply poison tier 3 to loop-player for 4 second replacing existing effect 													
+		if {Prestige::%player's uuid%} is "Lux":
+			send action bar "&f&l%{CD1::%player's uuid%}%&r  &r &f&l%{CD2::%player's uuid%}%"
+			apply hero of the village tier 10 to player for 1 second replacing existing effect      
+			if {Particles::%player's uuid%} is true:
+				set {_particle} to a circle with radius 0.5
+				set particle of {_particle} to 1 dust particle using dustTransition(gold, white, 0.7)
+				draw the shapes {_particle} at player      
+		if player's helmet is {BlossomCrown}:
+			apply health boost tier 5 to player for 1 second replacing existing effect
+		if player has dragon egg:
+			apply strength tier 2 to player for 1 second replacing existing effect
+
+
+on damage:
+	if attacker's helmet is {BlossomCrown}:
+		heal attacker by 0.5
+
+on damage:
+	if attacker is blocking:
+		if {Prestige::%attacker's uuid%} is "Brute":
+			cancel event
+			chance of 50%:
+				set item cooldown of shield for attacker to 7 seconds		
+#Crystal right click and withdrVaw
+function withdrawPrestige(p: player):
+	if {Prestige::%{_p}'s uuid%} is set:
+		give {_p} {Crystal::%{Prestige::%{_p}'s uuid%}%}
+		delete {Prestige::%{_p}'s uuid%}
+command /withdraw:
+	trigger:
+		withdrawPrestige(player)
+on right click:
+	if player's held item is {Crystal::Tide}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Tide"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Tide}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Inferno}:	
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Inferno"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Inferno}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Storm}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Storm"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Storm}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Latency}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Latency"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Latency}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Stone}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Stone"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Stone}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Lumen}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Lumen"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Lumen}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Velocity}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Velocity"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Velocity}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Void}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Void"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Void}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Sculk}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Sculk"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Sculk}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Moon}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Moon"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Moon}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Wrath}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Wrath"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Wrath}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Glacier}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Glacier"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Glacier}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Brute}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Brute"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Brute}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Toxin}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Toxin"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Toxin}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player
+	if player's held item is {Crystal::Lux}:
+		swapoutPrestige(player)
+		set {Prestige::%player's uuid%} to "Lux"
+		set player's held item to air
+		send "&eEquipped %name of {Crystal::Lux}%" to player
+		expandingParticleCircle(end rod, player's location, 0.3)
+		play sound "music_disc.5" at volume 1 with pitch 1 to player   
+function expandingParticleCircle(particle: particle, location: location, speed: number = 0.5, step: number = 4):
+	set {_angle} to 0
+	set {_step} to 4
+	while 360 > {_angle}:
+		set {_v} to spherical vector with radius 1, yaw {_angle}, pitch 0
+		make 0 of {_particle} at {_location} with offset {_v} with extra {_speed} with force
+		add {_step} to {_angle} 
+
+function swapoutPrestige(p: player):
+	if {Prestige::%{_p}'s uuid%} is "%{Prestige::%{_p}'s uuid%}%":
+		if {_p} can hold 1 bedrock:
+			give {_p} {Crystal::%{Prestige::%{_p}'s uuid%}%}
+		else:
+			drop {Crystal::%{Prestige::%{_p}'s uuid%}%} at location of {_p}
+#Abilities
+function absoluteDamage(victim: entity, attacker: entity, amount: number):
+	if {_victim}'s health is less than or equal to ({_amount}+0.1):
+		make {_attacker} damage {_victim} by 0.0000001
+		damage {_victim} by {_amount}
+	else:
+		make {_attacker} damage {_victim} by 0.0000001
+		set {_victim}'s health to {_victim}'s health - {_amount}
+function chargewave(p: player):
+	set {tidalwave::%{_p}'s uuid%} to boss bar with id "wavecd%{_p}%" with title "&b&lTidal Wave" with color cyan with progress 0
+	add {_p} to {tidalwave::%{_p}'s uuid%}	
+	loop 100 times:
+		wait 1 second
+		if {Dowave::%{_p}'s uuid%} is false:
+			add 1 to bar progress of {tidalwave::%{_p}'s uuid%}		
+		else:
+			exit loop
+	set {Dowave::%{_p}'s uuid%} to true
+	set {_damagescale} to bar progress of {tidalwave::%{_p}'s uuid%}
+	if {_damagescale} is between 0 and 10:
+		a_wave({_p}, {_p}'s location, 0, 0.5, {_damagescale})
+	if {_damagescale} is between 11 and 20:
+		a_wave({_p}, {_p}'s location, 0, 0.8, {_damagescale})
+	if {_damagescale} is between 21 and 30:
+		a_wave({_p}, {_p}'s location, 0, 1, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+	if {_damagescale} is between 31 and 40:
+		a_wave({_p}, {_p}'s location, 0, 1.5, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+	if {_damagescale} is between 41 and 50:
+		a_wave({_p}, {_p}'s location, 0, 2.5, {_damagescale})
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+	if {_damagescale} is between 51 and 60:
+		a_wave({_p}, {_p}'s location, 0, 2.8, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+
+	if {_damagescale} is between 61 and 70:
+		a_wave({_p}, {_p}'s location, 0, 3, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, -2, 0, 0)
+
+	if {_damagescale} is between 71 and 80:
+		a_wave({_p}, {_p}'s location, 0, 4, {_damagescale})
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, -2, 0, 0)
+		a_wave({_p}, {_p}'s location, 2, 0, 0)
+	if {_damagescale} is between 81 and 90:
+		a_wave({_p}, {_p}'s location, 0, 5, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, -2, 0, 0)
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+		a_wave({_p}, {_p}'s location, 2, 0, 0)
+	if {_damagescale} is between 91 and 99:
+		a_wave({_p}, {_p}'s location, 0, 5.5, {_damagescale})
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, -2, 0, 0)
+		a_wave({_p}, {_p}'s location, -3, 0, 0)
+		a_wave({_p}, {_p}'s location, -4, 0, 0)
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+		a_wave({_p}, {_p}'s location, 2, 0, 0)
+		a_wave({_p}, {_p}'s location, 3, 0, 0)
+		a_wave({_p}, {_p}'s location, 4, 0, 0)
+	if {_damagescale} is 100:
+		a_wave({_p}, {_p}'s location, 0, 6, {_damagescale})	
+		a_wave({_p}, {_p}'s location, -1, 0, 0)
+		a_wave({_p}, {_p}'s location, -2, 0, 0)
+		a_wave({_p}, {_p}'s location, -3, 0, 0)
+		a_wave({_p}, {_p}'s location, -4, 0, 0)
+		a_wave({_p}, {_p}'s location, -5, 0, 0)
+		a_wave({_p}, {_p}'s location, 1, 0, 0)
+		a_wave({_p}, {_p}'s location, 2, 0, 0)
+		a_wave({_p}, {_p}'s location, 3, 0, 0)
+		a_wave({_p}, {_p}'s location, 4, 0, 0)
+		a_wave({_p}, {_p}'s location, 5, 0, 0)
+	remove {_p} from {tidalwave::%{_p}'s uuid%}
+	delete {tidalwave::%{_p}'s uuid%} 
+	delete boss bar with id "wavecd%{_p}%"
+	set {Dowave::%{_p}'s uuid%} to false	
+function a_wave(p: player, loc: location, rightorleft: int, d: int, armor: int):
+	set {_add} to 0
+	set {_countdown} to false
+	set {_pl} to {_loc}
+	loop 200 times:
+		set {_amm} to loop-iteration
+		set {_location} to location {_amm} blocks infront and 1 block above and {_rightorleft} blocks right of {_pl}
+		if {_countdown} is false:
+			add 0.2 to {_add}
+		else:
+			remove 0.2 from {_add}
+		if {_add} > 3:
+			set {_countdown} to true
+		if {_add} < 0:
+			set {_countdown} to false
+
+
+		add {_add} to y coord of {_location}
+		draw 15 of dust using dustOption(rgb(0, 153, 255),2) at {_location} with offset vector(0.5, 0.5, 0.5)
+		loop all blocks in radius 5 of {_location}:
+			if loop-block is cobweb:
+				set loop-block to air
+		loop all entities in radius 4 of {_location}:
+			if loop-entity is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-entity:
+					if {TideList::%{_p}'s uuid%::*} does not contain loop-entity:
+						add uuid of loop-entity to {TideList::%{_p}'s uuid%::*}
+						absoluteDamage(loop-entity, {_p}, {_d})	
+						set durability of loop-entity's helmet to durability of loop-entity's helmet - {_armor} 
+						set durability of loop-entity's chestplate to durability of loop-entity's chestplate - {_armor} 
+						set durability of loop-entity's leggings to durability of loop-entity's leggings - {_armor} 
+						set durability of loop-entity's boots to durability of loop-entity's boots - {_armor} 		
+		wait 1 tick	
+	delete {TideList::%{_p}'s uuid%::*}	
+on death of player:
+	loop all players:
+		if {TideList::%loop-player's uuid%::*} contains victim:
+			set death message to "&f%victim% was surfed away by %loop-player%'s Tidal Wave"
+		if {InfernoList::%loop-player's uuid%::*} contains victim:
+			set death message to "&f%victim% couldn't handle %loop-player%'s Erruption"
+		if {CursedList::%loop-player's uuid%::*} contains victim:
+			set death message to "&f%victim% fell victim to %loop-player%'s curse"       
+on join:                
+	set player's attack speed attribute to 4.0
+on right click:
+	if player's held item is diamond sword or iron sword or stone sword or wooden sword or golden sword or netherite sword:
+		player is sneaking
+		if {tidalwave::%player's uuid%} is set:
+			set {Dowave::%player's uuid%} to true
+command /ability1:
+	trigger:
+		if {Prestige::%player's uuid%} is "Tide":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 140
+				send "<##BBFFFB>You have activated <##0091ff>Tidal Wave" to player
+				play sound "block.bubble_column.whirlpool_inside" with volume 3 at location of player
+				set {Dowave::%player's uuid%} to false				
+				chargewave(player)
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%}                              
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Inferno":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 40
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%}        
+				send "<##BBFFFB>You have activated <##ffa229>Eruption" to player
+				set {_pl} to location of player
+				play sound "entity.blaze.death" at volume 3 at pitch 1 at location of player
+				loop 20 times:
+					add 1 to y-coordinate of {_pl}
+					set {_shape} to a circle with radius 5
+					set particle of {_shape} to 5 dust particle using dustOption(orange, 1)
+					draw the shapes {_shape} at location of {_pl}
+				loop all players in radius 6 of player:
+					if loop-player is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-player:
+							push loop-player upwards at speed 3
+							ignite loop-player for 30 seconds 
+							add loop-player to {InfernoList::%player's uuid%::*}	
+							absoluteDamage(loop-player, player, 2.5)				
+				loop all blocks in radius 6 of player:
+					set loop-block to air if loop-block is cobweb
+				delete {InfernoList::%player's uuid%::*}	
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Storm":
+			if {CD1::%player's uuid%} is "":
+				if {Dashes::%player's uuid%} is more than 0:
+					send "<##BBFFFB>You have activated &eStorm Dash"			
+					push player in direction of player at speed 2
+					remove 1 from {Dashes::%player's uuid%}	
+					wait 3 ticks
+					loop 60 times:
+						wait 1 tick		
+						draw 0 of electric spark at player with offset vector(0.5,1,0.5)	
+						add player's location to {_location::*}												
+					loop 100 times:
+						wait 1 tick
+						draw 0 of electric spark at {_location::*} with offset vector(0.5,1,0.5)
+						loop {_location::*}:							
+							loop all entities in radius 2 of loop-value-2:
+								if loop-entity is not player:
+									if {Trusted::%player's uuid%::*} does not contain loop-entity:
+										damage loop-entity by 2	
+
+				if {Dashes::%player's uuid%} <= 0:
+					set {CD1::%player's uuid%} to 80
+					if {Lives::%player's uuid%} = 0:
+						add 20 to {CD1::%player's uuid%}  
+					if {Lives::%player's uuid%} = -1:
+						add 40 to {CD1::%player's uuid%}       
+					if {Lives::%player's uuid%} = -2:
+						add 60 to {CD1::%player's uuid%} 
+					set {_time} to "%{CD1::%player's uuid%}% seconds" parsed as timespan         
+					set {_p} to player's uuid
+					set {Dashes::%{_p}%} to ""					
+					wait {_time}
+					set {Dashes::%{_p}%} to 2				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Latency":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 130
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%}                
+				send "<##BBFFFB>You have activated &6System Wipe"
+				play sound "music_disc.13" at volume 1 with pitch 1 at location of player
+				loop all players in radius 7 of player:
+					if loop-player is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-player:
+							systemwipe(loop-player)		
+							set item cooldown of all splash potions for loop-player to 15 seconds	
+							set item cooldown of all potions for loop-player to 15 seconds	
+							set item cooldown of all lingering potions for loop-player to 15 seconds																												
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"   
+		if {Prestige::%player's uuid%} is "Stone":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 100
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &2Stony Spikes"
+				Stone1(player, 3.5)
+								
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"   
+		if {Prestige::%player's uuid%} is "Lumen":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 50
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &dAlchemist &7(radius 5)"
+				loop 200 times:
+					wait 1 tick
+					set {_shape} to a circle with radius 6
+					set particle of {_shape} to 1 dust particle using dustOption(pink, 1)
+					draw the shapes {_shape} at location of player
+					if loop-number mod 40 = 0:
+						loop all living entities in radius 6 of player:
+							if loop-entity is not player:
+								if {Trusted::%player's uuid%::*} does not contain loop-entity:
+									heal player by 1 heart
+									absoluteDamage(loop-entity, loop-entity, 1)
+								else:
+									apply regeneration tier 1 to loop-entity for 4 seconds replacing existing effect							
+
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"   
+			
+		if {Prestige::%player's uuid%} is "Velocity":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 60
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##6696E3>Dash"
+				push player in direction of player at speed 2
+				wait 10 ticks				
+				while player is not on ground:
+					wait 1 tick
+					draw 20 of dust using dustOption(rgb(0,102,102),1.5) at location 1 block above player with offset vector(0.5,0.5,0.5)		
+				set {_l} to location of player				
+				loop 60 times:
+					wait 1 tick				
+					loop all players in radius 3 of player:
+						if loop-player is not player:
+							if {Trusted::%player's uuid%::*} does not contain loop-player:
+								teleport loop-player to loop-player
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+		if {Prestige::%player's uuid%} is "Void":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 45
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##873d83>Teleport"
+				teleport(player)
+				loop 20 times:
+					wait 1 tick
+					draw 30 of witch at location 1 block above player with offset vector(0.25, 0.25, 0.25) with extra 0 with force
+				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+		if {Prestige::%player's uuid%} is "Sculk":
+			if {CD1::%player's uuid%} is "":
+				set {_t} to player's target
+				set {CD1::%player's uuid%} to 50
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##2c2b6e>Sonic Boom"
+				boom(player)
+				play sound "entity.warden.sonc_boom" at volume 3 with pitch 1 at location of player		
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Moon":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 90
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &f&lMoon Moon Ring"
+				Moon2(player)
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Wrath":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 80
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &7&lSpectral Pull"
+				specter1(player)
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Lux":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 120
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##ddad22>Energy Sun"
+				sun(player, 1)
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+		if {Prestige::%player's uuid%} is "Brute":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 80
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##E05A3F>Brute Force"
+				set {_uuid} to player's uuid
+				set {AutoCrit::%player's uuid%} to true
+				apply speed tier 2 to player for 15 seconds replacing existing effect           
+				wait 15 seconds
+				set {AutoCrit::%{_uuid}%} to false					
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+		if {Prestige::%player's uuid%} is "Glacier":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 120
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##72CFCA>Glacier"
+				set {_p} to player
+				set {_y} to player's location
+				add 7 to y-coordinate of {_y}
+				loop 300 times:
+					add 0.5 to {_r}
+					set {_shape} to a circle with radius {_r}
+					set particle of {_shape} to snowflake
+					draw the shapes {_shape} at {_y}
+					loop all entities in radius 15 of {_y}:
+						if loop-entity is not {_p}:
+							if {Trusted::%player's uuid%::*} does not contain loop-entity:
+								set loop-entity's freeze time to 15 seconds	
+					if {_r} = 15:
+						set {_r} to 0
+					wait 1 tick
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+		if {Prestige::%player's uuid%} is "Toxin":
+			if {CD1::%player's uuid%} is "":
+				set {CD1::%player's uuid%} to 15
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &8Clear Web"
+				loop all blocks in radius 6 of player:
+					if loop-block is cobweb:
+						set loop-block to air
+						draw 10 of smoke at loop-block
+				loop all players in radius 6 of player:
+					if loop-player is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-player:
+							apply poison tier 3 to loop-player for 3 seconds replacing existing effect					
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD1::%player's uuid%}%" 
+on damage:
+	if hit is not critical:
+		if {Prestige::%attacker's uuid%} is "Brute":
+			if {AutoCrit::%attacker's uuid%} is true:
+				set the damage to damage * 1.5
+				draw 5 of crit at location 1 block above victim
+				play sound "entity.player.attack.crit" at volume 1 with pitch 1 to attacker
+				play sound "entity.player.attack.crit" at volume 1 with pitch 1 to victim	
+				draw 20 of dust using dustOption(rgb(255,0,0),1.5) at location 1 block above victim with offset vector(0.5,0.5,0.5)	
+function specter1(p: player):
+	set {_loc} to location of {_p}
+	loop 200 times:
+		wait 1 tick
+		draw 4 of large smoke at location 1 block above {_loc} with offset vector(0.3, 0.5, 0.3) with extra 0 with force		
+		draw 5 of dust using dustOption(rgb(0,0,0),1.5) at location 1 block above {_loc} with offset vector(1,01,1)			
+		loop all players in radius 5 of {_loc}:
+			if loop-player is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-player:
+					knock loop-player (vector from loop-player to {_loc}) with strength 0.10	
+					if loop-number mod 6 = 0:			
+						damage loop-player by 0.2
+						make loop-player vulnerable
+function specter2(p: player):
+	set {_loc} to location of {_p}
+	loop 200 times:
+		wait 1 tick
+		draw 4 of large smoke at location 1 block above {_loc} with offset vector(0.3, 0.5, 0.3) with extra 0 with force		
+		draw 5 of dust using dustOption(rgb(0,0,0),1.5) at location 1 block above {_loc} with offset vector(1,01,1)		
+		draw 1 of sonic boom at location 1 block above 1.5 blocks west of {_loc}	
+		draw 1 of sonic boom at location 1 block above 1.5 blocks east of {_loc}		
+		draw 1 of sonic boom at location 1 block above 1.5 blocks north of {_loc}	
+		draw 1 of sonic boom at location 1 block above 1.5 blocks south of {_loc}
+		draw 5 of end rod at location 1 block above {_loc} with offset vector(1,01,1)	
+		draw 5 of dust pillar using soul sand at location 1 block above {_loc} with offset vector(1,01,1)	
+		draw 10 of sculk soul at {_loc}		
+		loop all players in radius 5 of {_loc}:
+			if loop-player is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-player:
+					knock loop-player (vector from loop-player to {_loc}) with strength 0.10	
+					if loop-number mod 6 = 0:			
+						damage loop-player by 0.2
+						make loop-player vulnerable	
+
+function systemwipe(p: player):
+	if {Prestige::%{_p}'s uuid%} is "Stone":
+		set {CD1::%{_p}'s uuid%} to 100
+		set {CD2::%{_p}'s uuid%} to 80
+	if {Prestige::%{_p}'s uuid%} is "Tide":
+		set {CD1::%{_p}'s uuid%} to 140
+		set {CD2::%{_p}'s uuid%} to 60
+	if {Prestige::%{_p}'s uuid%} is "Inferno":
+		set {CD1::%{_p}'s uuid%} to 40
+		set {CD2::%{_p}'s uuid%} to 70
+	if {Prestige::%{_p}'s uuid%} is "Brute":
+		set {CD1::%{_p}'s uuid%} to 80
+		set {CD2::%{_p}'s uuid%} to 100
+	if {Prestige::%{_p}'s uuid%} is "Void":
+		set {CD1::%{_p}'s uuid%} to 45
+		set {CD2::%{_p}'s uuid%} to 90
+		set {doublejump::%{_p}'s uuid%} to 10
+	if {Prestige::%{_p}'s uuid%} is "Velocity":
+		set {CD1::%{_p}'s uuid%} to 60
+		set {CD2::%{_p}'s uuid%} to 100
+	if {Prestige::%{_p}'s uuid%} is "Lumen":
+		set {CD1::%{_p}'s uuid%} to 50
+		set {CD2::%{_p}'s uuid%} to 70
+	if {Prestige::%{_p}'s uuid%} is "Sculk":
+		set {CD1::%{_p}'s uuid%} to 50
+		set {CD2::%{_p}'s uuid%} to 120
+	if {Prestige::%{_p}'s uuid%} is "Wrath":
+		set {CD1::%{_p}'s uuid%} to 80
+		set {CD2::%{_p}'s uuid%} to 45
+	if {Prestige::%{_p}'s uuid%} is "Moon":
+		set {CD1::%{_p}'s uuid%} to 90
+		set {CD2::%{_p}'s uuid%} to 100
+	if {Prestige::%{_p}'s uuid%} is "Storm":
+		set {CD1::%{_p}'s uuid%} to 80
+		set {CD2::%{_p}'s uuid%} to 70	
+		set {Dashes::%{_p}'s uuid%} to ""		
+	if {Prestige::%{_p}'s uuid%} is "Glacier":
+		set {CD1::%{_p}'s uuid%} to 120
+		set {CD2::%{_p}'s uuid%} to 70
+	if {Prestige::%{_p}'s uuid%} is "Toxin":
+		set {CD1::%{_p}'s uuid%} to 15
+		set {CD2::%{_p}'s uuid%} to 90
+	if {Prestige::%{_p}'s uuid%} is "Latency":
+		set {CD1::%{_p}'s uuid%} to 130
+		set {CD2::%{_p}'s uuid%} to 70
+
+	send title "&c&lSYSTEM WIPED" with subtitle "&c&lERROR! &6&lRAISING COOLDOWNS!" to {_p}	
+	set {_effects::*} to active potion effects of {_p}
+	remove potion effect of strength 1 from potion effects of {_p}
+	remove potion effect of speed 1 from potion effects of {_p}
+	remove potion effect of speed 1 from potion effects of {_p}	
+	loop 30 times:			
+		wait 0.5 seconds
+		draw 10 of dust using dustOption(rgb(204, 204, 0),1.5) at location 1 block above {_p} with offset vector(0.5,0.5,0.5)
+	apply {_effects::*} to {_p} replacing existing effect
+function crush(p: player):
+	set {_loc} to {_p}'s location
+	loop 300 times:
+		wait 1 ticks
+		set {_crush} to a circle with radius 10
+		set particle of {_crush} to 0 dust particle using dustOption(green, 1)
+		draw shape {_crush} at location 0 block above {_loc}
+		loop all entities in radius 11 of {_loc}:
+
+			if loop-entity is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-entity:	
+					set {Gravity::%{_p}'s uuid%} to true
+					set item cooldown of cobweb for loop-entity to 1 second		
+					apply slowness tier 4 to loop-entity for 1 second replacing existing effect			
+					if loop-entity is not a ender pearl or wind charge:
+						set {_e} to loop-entity
+						set velocity of {_e} to vector(x of velocity of {_e}, -0.10, z of velocity of {_e})		
+					if loop-entity is enderpearl or wind charge:
+						set {_e} to loop-entity
+						set velocity of {_e} to vector(x of velocity of {_e}, -0.30, z of velocity of {_e})			
+	set {Gravity::%{_p}'s uuid%} to false			
+on damage:
+	if hit is not critical:
+		if {Gravity::%attacker's uuid%} is true:
+			if attacker's fall distance is more than 0.15:
+				set the damage to damage * 1.5
+				draw 3 of crit at location 1 block above victim
+				play sound "entity.player.attack.crit" at volume 1 with pitch 1 to attacker
+				play sound "entity.player.attack.crit" at volume 1 with pitch 1 to victim										
+function smoothLine(loc1: location, loc2: location, step-size: number=0.25) :: locations:
+     # get vector in the right direction
+	set {_v} to vector from {_loc1} to {_loc2}
+     # calculate a step size that's a factor of the distance
+	set {_ideal-steps} to round((vector length of {_v}) / {_step-size})
+	set {_step-size} to (vector length of {_v}) / {_ideal-steps}
+	# make it the right length
+	set vector length of {_v} to {_step-size}
+	# ideal steps, plus one to make sure we get to the end
+	loop {_ideal-steps} + 1 times:
+		# store location for returning
+		set {_locs::%loop-value%} to {_loc1}
+		# move {_loc1} by one step
+		set {_loc1} to {_loc1} ~ {_v}
+	# return the locations
+	return {_locs::*}
+function sun(p: player, M: number): 
+	set {_loc} to location 10 meters above {_p}
+	play sound "entity.allay.hurt" at {_p}
+	loop smoothLine({_p}'s eyes, {_loc}, 0.1):
+		if block at loop-value is solid:
+			set {_loc} to loop-value
+			exit 1 loop
+		draw 2 of dust using dustOption(rgb(223, 210, 255),2) at loop-value with extra 0.1
+		draw 6 of dust using dustOption(rgb(255,204,0), 1) at loop-value with offset vector(0.5,0.5,0.5) with extra 0.15
+	if block at {_loc} is not air:
+		create an explosion of force 1.5  at {_loc} with fire
+	wait 5 ticks
+	play sound "block.enchantment_table.use" at volume 8 with pitch 2 at {_loc}
+	play sound "block.glass.break" at volume 6 at {_loc}
+	play sound "minecraft:block.end_portal_frame.fill" at volume 8 with pitch 0.1 at {_loc}
+	loop 90 times:
+		draw 200 of dust using dustOption(rgb(223, 210, 255), 4) at {_loc} with offset vector(2, 2, 2) with extra 0.1
+		draw 150 of dust using dustOption(rgb(255, 204, 0), 3) at {_loc} with offset vector(2.7, 2.8, 2.65) with extra 0.15
+		loop all entities in radius 22 of {_loc}:
+			loop-entity is not {_p}
+			loop-entity is not an ender pearl
+			{Trusted::%{_p}'s uuid%::*} does not contain loop-entity
+			if distance between loop-entity and {_loc} is greater than 15:
+				damage loop-entity by {_M} / 4
+			else if distance between loop-entity and {_loc} is greater than 5:
+				damage loop-entity by {_M} / 2
+			else:
+				damage loop-entity by {_M}
+		if loop-value is divisible by 8:		
+			loop all players in radius 22 of {_loc}:
+				if loop-player is not {_p}:
+					if {Trusted::%{_p}'s uuid%::*} does not contain loop-player:            
+						send title "🏆" to loop-player for 7 ticks 
+						if {LuxList::%{_p}'s uuid%::*} does not contain loop-entity:
+							add loop-entity to {LuxList::%{_p}'s uuid%::*}
+		wait 3 ticks
+	wait 1.75 seconds
+	play sound "entity.evoker.prepare_summon" at volume 10 with pitch 2 at {_loc}
+	draw 120 of firework at {_loc} with offset vector(4,4,4) with extra 0.3
+	draw 45 of end_rod at {_loc} with offset vector(4,4,4) with extra 0.1
+	draw 60 of poof at {_loc} with offset vector(4,4,4) with extra 0.2
+	delete {LuxList::%{_p}'s uuid%::*}  
+on consume:
+	chance of 25%:
+		loop all players:
+			if {LuxList::%loop-player's uuid%::*} contains player:
+				cancel event
+on consume:
+	if {Prestige::%player's uuid%} is "Lux":
+		chance of 25%:
+			give player 1 of event-item      
+on damage:
+	if {Prestige::%attacker's uuid%} is "Lux":
+		set {_sunlight_level} to sunlight level at attacker's location
+		if {_sunlight_level} is 15:	
+			add 1 to damage
+on damage:
+	if {Prestige::%attacker's uuid%} is "Wrath":
+		add 1 to {damage::%attacker's uuid%}
+		if {damage::%attacker's uuid%} = 15:
+			apply wither tier 1 to victim for 5 second replacing existing effect
+on mine:
+	if {Prestige::%player's uuid%} is "Latency":
+		apply haste tier 3 to player for 2 seconds replacing existing effect
+on damage:
+	if {Prestige::%attacker's uuid%} is "Latency":
+		apply speed tier 3 to attacker for 2 seconds replacing existing effect
+on disconnect:
+	execute console command "unchain %player%"
+	set {Chained::%player's uuid%} to false
+on death of a player:
+	execute console command "unchain %victim%"
+function chaintogether(e1: entity, e2: entity):
+	execute console command "chain %{_e1}% %{_e2}%"
+	set {Chained::%{_e2}'s uuid%} to true
+	play sound "block.chain.place" at volume 5 with pitch 1 at location of {_e1}
+	wait 10 seconds
+	set {Chained::%{_e2}'s uuid%} to false
+	execute console command "unchain %{_e1}%"
+	play sound "block.chain.break" at volume 5 with pitch 1 at location of {_e1}
+on damage:
+	if {Chained::%attacker's uuid%} is true:
+		set damage to damage / 1.3
+function SonicBoom(e1: entity, e2: entity):
+	loop 1 times:
+		if distance between {_e2} and {_e1} < 100:
+			set {_loc1} to location 1 block above {_e2}
+			set {_loc2} to location 1 block above {_e1}
+			set {_vec} to vector from {_loc1} and {_loc2}
+			set vector length of {_vec} to 0.3
+			set {_loc3} to {_loc1} ~ {_vec}
+			set {_step-size} to 0.3
+			set {_v} to vector from {_loc1} to {_loc2}
+			set vector length of {_v} to {_step-size}
+			loop floor((distance between {_loc3} and {_loc2}) / {_step-size}) times:
+				set {_loc1} to {_loc1} ~ {_v}
+				make 10 of sonic boom at {_loc1}   
+			set {_v1} to vector between {_e2} and {_e1}
+		wait 1 tick	
+function Mooncircle(p: player):
+	loop 20 times:
+		wait 0.5 seconds
+		set {_loc} to location of {_p}
+		set {_Moon} to a circle with radius 6
+		set particle of {_Moon} to 10 dust particle using dustOption(gray, 1)
+		draw the shapes {_Moon} at {_loc}
+		loop all players in radius 6 of {_p}:
+			if loop-player is not {_p}:
+				apply darkness tier 1 to loop-player for 2 seconds replacing existing effect
+function stealitem(p: player, e: player):
+	set {_r} to a random integer between 1 and 4
+	if {_r} is 1:
+		remove 2 golden apple from {_e}
+		give {_p} 2 golden apple
+		send "&c&l%{_p}% has stolen &6&l2 Golden Apples &c&lfrom you" to {_e}
+	if {_r} is 2:
+		remove 8 experience bottle from {_e}
+		give {_p} 8 experience bottle
+		send "&c&l%{_p}% has stolen &e&l8 Experience Bottle &c&lfrom you" to {_e}
+	if {_r} is 3:
+		remove 4 wind charge from {_e}
+		give {_p} 4 wind charge
+		send "&c&l%{_p}% has stolen &f&l4 Wind Charge &c&lfrom you" to {_e}
+	if {_r} is 4:
+		remove 4 cobweb from {_e}
+		give {_p} 4 cobweb	
+		send "&c&l%{_p}% has stolen &f&l4 Cobweb &c&lfrom you" to {_e}		
+function Moondomain(p: player):
+	set {_domain} to location of {_p}
+	play sound "block.beacon.ambient" with volume 2 and pitch 2 to all players in radius 30 of {_domain}
+	
+	loop all blocks in radius 20 of {_domain}:
+		set {_dem::%location of loop-block%} to true
+		set {_dem::%location of loop-block%::*} to location of loop-block and type of loop-block
+		if loop-block is solid:
+			set loop-block to end stone or purpur block or purpur pillar or end stone bricks
+			add 120 to {_cd1}
+			if {_cd1} >= 45000:
+				set {_cd1} to 0
+				wait 1 tick
+		if loop-block is not solid:
+			if the distance between {_domain} and loop-block is higher than 19:
+				set loop-block to end stone or purpur block or purpur pillar or end stone bricks
+				add 120 to {_cd}
+				if {_cd} >= 45000:
+					set {_cd} to 0
+					wait 1 tick
+		if loop-block is not solid:
+			if the distance between {_domain} and loop-block is higher than 19:
+				set loop-block to light
+	loop 15 times:
+		play sound "block.beacon.activate" with volume 2 and pitch 2 to all players in radius 10 of {_domain}
+		loop all blocks in radius 20 of {_domain}:
+			chance of 0.5%:
+				make 5 of dust at loop-block with offset vector(0, 0, 0) with extra 0.1
+			loop all entities in radius 20 of {_domain}:
+				if loop-entity is not {_p}:
+					apply mining fatigue tier 3 to loop-entity for 5 seconds replacing existing effect		
+		wait 1.5 second
+	#wait 3 seconds
+	play sound "block.beacon.deactivate" with volume 2 and pitch 2 to all players in radius 10 of {_domain}
+	loop {_dem::*}:
+		set block at {_dem::%loop-index%::1} to {_dem::%loop-index%::2}
+	loop all entities in radius 20 of {_domain}:
+		remove blindness from loop-entity
+on entity potion effect added:
+	if event-potioneffectcause is potion splash:
+		if {Prestige::%player's uuid%} is "Void":
+			event-potioneffect's potion tier is 1
+			cancel event
+			set {_duration} to potion duration of event-potioneffect
+			set {_duration} to seconds of {_duration}
+			apply event-potioneffecttype to event-entity for "%{_duration}*2% seconds" parsed as a timespan
+function teleport(P: player):
+	teleport {_p} 10 blocks infront of {_p}'s eyes
+	play sound "entity.illusioner.mirror_move" at volume 1 with pitch 1 at location of {_p}
+on damage:
+	if {WindArmor::%victim's uuid%} is true:	
+		play sound "entity.breeze.deflect" at volume 1 with pitch 1 to attacker and victim	
+on damage:
+	if damage cause is fall:
+		if {HyperLoad::%victim's uuid%} is true:
+			set {HyperLoad::%victim's uuid%} to false
+			cancel event
+		if {Prestige::%victim's uuid%} is "Velocity":
+			cancel event
+
+on disconnect:
+	set {HyperLoad::%player's uuid%} to false
+	delete {WindArmor::%player's uuid%}
+on damage:
+	if attacker is on the ground:
+		set {HyperLoad::%attacker's uuid%} to false
+	if {HyperLoad::%attacker's uuid%} is true: 
+		if victim is not blocking: 
+			cancel event
+			set {HyperLoad::%attacker's uuid%} to false
+			absoluteDamage(victim, attacker, 4)
+			play sound "item.mace.smash_ground" at volume 1 with pitch 1 at location of attacker
+		if victim is blocking:
+			set {HyperLoad::%attacker's uuid%} to false
+
+
+function shuffleHotbar(p: player):
+	loop 8 times:
+		set {_s1} to random integer between 0 and 8
+		set {_s2} to random integer between 0 and 8
+		set {_i1} to slot {_s1} of {_p}'s inventory
+		set {_i2} to slot {_s2} of {_p}'s inventory
+		set slot {_s1} of {_p}'s inventory to {_i2}
+		set slot {_s2} of {_p}'s inventory to {_i1}
+command /ability2:
+	trigger:
+		if {Prestige::%player's uuid%} is "Tide":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 60
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%} 
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##0091ff>Riptide" to player
+				set {_loc} to player's location
+				play sound "item.trident.riptide_3" with volume 3 with pitch 1 at location of player
+				loop 35 times:
+					set {_loc} to location 0.5 infront of {_loc}
+					draw 8 of dust using dustOption(rgb(0, 153, 255),2) at {_loc}
+				push player forward at speed 3
+							
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Inferno":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 70
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##ffa229>Meteor Shower &7(radius 5)" to player
+				summonMeteor(player's target block)
+
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Storm":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 70
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &eStorm Mark"
+				set {StormMark::%player's uuid%} to true
+				
+				loop 10 times:
+					wait 1 second	
+					storm(player)				
+					loop all players in radius 20 of player:
+						if loop-player is not player:			
+							if {Trusted::%player's uuid%::*} does not contain loop-player:				
+								if {Marked::%player's uuid%::*} contains loop-player:
+											
+									draw 100 of dust using dustOption(rgb(255,255,0),1.5) at location 1 block above loop-player with offset vector(0.5,0.5,0.5)						
+									strike lightning effect at loop-player
+									absoluteDamage(loop-player, player, 0.4)
+				clear {Marked::%player's uuid%::*}
+				set {StormMark::%player's uuid%} to false	
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Latency":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 90
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &6Scramble &7(radius 5)"
+				loop all players in radius 5 of player:
+					if loop-player is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-player:
+							send "<##BBFFFB>Your inventory has been &6Shuffled &7(radius 5) <##BBFFFB>by &e%player%" to loop-player
+							loop 10 times:
+								wait 1 tick
+								shuffleHotbar(loop-player)
+								play sound "block.note_block.chime" at volume 1 with pitch 1 at loop-player
+		
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Stone":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 80
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &2MoleRat"
+				crush(player)
+		
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"
+		if {Prestige::%player's uuid%} is "Lumen":
+			if {CD2::%player's uuid%} is "":
+				if player's target is set:
+					set {CD2::%player's uuid%} to 70
+					if {Lives::%player's uuid%} = 0:
+						add 20 to {CD1::%player's uuid%}  
+					if {Lives::%player's uuid%} = -1:
+						add 40 to {CD1::%player's uuid%}       
+					if {Lives::%player's uuid%} = -2:
+						add 60 to {CD1::%player's uuid%} 
+					send "<##BBFFFB>You have activated &dLife Drain"
+					set {_t} to player's target
+					loop 400 times:
+						wait 1 tick
+						set {_t}'s max health to 8
+						draw 1 of dust using dustOption(pink, 1) at lifedrain(player, {_t}, 100) with offset vector(0,0,0) with extra 0 with force 
+						draw 1 of dust using dustOption(white, 1) at lifedrain(player, {_t}, 100) with offset vector(0,0,0) with extra 0 with force 
+					set {_t}'s max health to 10
+				else:
+					send "<##BBFFFB>Look at a entity to use ur ғɪʀsᴛ ᴀʙɪʟɪᴛʏ"
+		if {Prestige::%player's uuid%} is "Velocity":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 100
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##6696E3>Combo Rush"
+				Velocitybounce(player)
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Void":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 90
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &5Curse"
+				loop all entities in radius 7 of player:
+					if loop-entity is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-entity:
+							play sound "entity.elder_guardian.curse" at volume 1 with pitch 1 at loop-entity
+							curse(loop-entity)
+							add uuid of loop-entity to {CursedList::%player's uuid%::*}
+							set {Curser::%player's uuid%} to player
+				wait 10 seconds
+				delete {CursedList::%player's uuid%::*}
+				delete {Curser::%player's uuid%}			
+
+				
+			
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Sculk":
+			if {CD2::%player's uuid%} is "":
+				set {CD2::%player's uuid%} to 120
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##2c2b6e>Warden's Buff"
+				set {Shield::%player's uuid%} to true
+				set {_uuid} to player's uuid
+				wait 15 seconds
+				set {Shield::%{_uuid}%} to false										
+
+				
+			
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Moon":
+			if {CD2::%player's uuid%} is "":	
+				set {CD2::%player's uuid%} to 100
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &f&lPhantom Force"
+				Mooncircle(player)
+				loop 4 times:
+					wait 1 second
+					loop all players in radius 6 of player:
+						if loop-player is not player:
+							if {Trusted::%player's uuid%::*} does not contain loop-player:									
+								stealitem(player, loop-player)
+				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Wrath":
+			if {CD2::%player's uuid%} is "":	
+				set {CD2::%player's uuid%} to 90
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &7&lRift"
+				specter2(player)				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Lux":
+			if {CD2::%player's uuid%} is "":	
+				set {CD2::%player's uuid%} to 80
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##ddad22>Energy Transfusion"
+				lux2(player)
+				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+		if {Prestige::%player's uuid%} is "Brute":
+			if {CD2::%player's uuid%} is "":	
+				set {CD2::%player's uuid%} to 100
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated <##E05A3F>&lDisable"
+				apply speed tier 2 to player for 15 seconds replacing existing effect    
+				loop all players in radius 7 of player:
+					if loop-player is not player:
+						if {Trusted::%player's uuid%::*} does not contain loop-player:	
+							set item cooldown of diamond sword for loop-player to 15 seconds	
+							set item cooldown of shield for loop-player to 15 seconds	
+							set item cooldown of diamond axe for loop-player to 15 seconds										
+							set item cooldown of iron sword for loop-player to 15 seconds	
+							set item cooldown of shield for loop-player to 15 seconds	
+							set item cooldown of iron axe for loop-player to 15 seconds		
+							set item cooldown of netherite sword for loop-player to 15 seconds	
+							set item cooldown of shield for loop-player to 15 seconds	
+							set item cooldown of netherite axe for loop-player to 15 seconds	
+							set item cooldown of stone sword for loop-player to 15 seconds	
+							set item cooldown of shield for loop-player to 15 seconds	
+							set item cooldown of stone axe for loop-player to 15 seconds		
+							draw 20 of dust using dustOption(rgb(255,0,0),1.5) at location 1 block above loop-player with offset vector(0.5,0.5,0.5)																					
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  	
+		if {Prestige::%player's uuid%} is "Glacier":
+			if {CD2::%player's uuid%} is "":	
+				if player's target is set:
+					set {CD2::%player's uuid%} to 70
+					if {Lives::%player's uuid%} = 0:
+						add 20 to {CD1::%player's uuid%}  
+					if {Lives::%player's uuid%} = -1:
+						add 40 to {CD1::%player's uuid%}       
+					if {Lives::%player's uuid%} = -2:
+						add 60 to {CD1::%player's uuid%} 
+					send "<##BBFFFB>You have activated <##72CFCA>Freeze"
+					set {_p} to player
+					set {_t} to player's target
+					play sound "block.glass.break" at volume 999 with pitch 999 at location of player
+					draw 1 of dust using dustOption(cyan, 1) at lifedrain(player's eyes, {_t}, 100) with offset vector(0,0,0) with extra 0 with force 
+					spawn packed ice block display at (block at {_t}):
+						set {_d} to last spawned block display
+						set the display translation of {_d} to vector(-0.5,-2,-0.5)
+						set the display scale of {_d} to vector(1,2.5,1)
+					make {_d} ride {_t}
+					set {Frozen::%{_t}'s uuid%} to true
+					wait 5 seconds
+					kill {_d}
+					set {Frozen::%{_t}'s uuid%} to false
+				else:
+					send "<##72CFCA>Look at a player"
+				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  	
+		if {Prestige::%player's uuid%} is "Toxin":
+			if {CD2::%player's uuid%} is "":	
+				set {CD2::%player's uuid%} to 90
+				if {Lives::%player's uuid%} = 0:
+					add 20 to {CD1::%player's uuid%}  
+				if {Lives::%player's uuid%} = -1:
+					add 40 to {CD1::%player's uuid%}       
+				if {Lives::%player's uuid%} = -2:
+					add 60 to {CD1::%player's uuid%} 
+				send "<##BBFFFB>You have activated &2PSticky Web"
+				thorn2(player)				
+			else:
+				send "&7&lRemaining Cooldown: &6&l%{CD2::%player's uuid%}%"  
+function lux2(p: player):
+	loop 100 times:
+		wait 1 tick
+		hide {_p}
+	reveal {_p}  
+	draw 100 of electric spark at location 1 block above {_p} with offset vector(1,0.5,1)
+	draw 20 of dust using dustOption(rgb(255, 204, 0), 1.5) at location 1 block above {_p} with offset vector(1, 0.5, 1) with extra 0.15
+	loop all entities in radius 10 of {_p}:
+		if loop-entity is not {_p}:
+			if {Trusted::%{_p}'s uuid%::*} does not contain loop-entity:          
+				absoluteDamage(loop-entity, {_p}, 3)       
+on join:
+	reveal all players to all players
+on leave:
+	reveal all players to all players    
+function checkweb(p: player) :: boolean:
+	if block at {_p} is cobweb:
+		return true
+	else:
+		return false
+on damage:
+	if {StormMark::%attacker's uuid%} is true:
+		if size of {Marked::%attacker's uuid%::*} is not 3:
+			if {Marked::%attacker's uuid%::*} does not contain victim:
+				add uuid of victim to {Marked::%attacker's uuid%::*}
+function Velocityland(p: player):
+	while {_p} is alive:
+		if {_p} is on ground:
+			Velocityimpact({_p})
+			stop
+		wait 1 tick
+function junkrift(loc: location, offset: number, dmg: number, caster: player):
+	set {_rand1} to random integer between 1 and 4
+	if {_rand1} is 1:
+		set {_loc2} to location {_offset} meters north of {_loc}
+	if {_rand1} is 2:
+		set {_loc2} to location {_offset} meters south of {_loc}
+	if {_rand1} is 3:
+		set {_loc2} to location {_offset} meters east of {_loc}
+	if {_rand1} is 4:
+		set {_loc2} to location {_offset} meters west of {_loc}
+	wait 1 tick
+	loop 2 times:
+		if loop-value is 1:
+			set {_s} to random integer between 1 and 2
+			if {_s} is 1:
+				play sound "block.amethyst_block.fall" with volume 1.5 at {_loc2}
+			else:
+				play sound "block.amethyst_block.resonate" with volume 1.5 at {_loc2}
+			draw 20 of dust using dustOption(rgb(51, 102, 0), 1) at {_loc2} with offset vector(0.4, 0.15, 0.4) with extra 0.1
+		coloredParticleRing({_loc2}, (loop-value / 2), 120, rgb(51, 102, 0))
+		wait 1 tick
+	set {_rand} to 1
+	wait 1 tick
+	if {_rand} is 1:
+		le spawn falling pointed dripstone[vertical_direction=down] at {_loc2}
+		set {_block} to last spawned falling block
+	wait 1 tick
+	play sound "block.amethyst_block.chime" at {_block}
+	while {_block}'s fall distance is greater than 0:
+		wait 1 tick
+	set block at {_block} to air
+	draw 1 of explosion at {_block}
+	play sound "entity.shulker_bullet.hit" with volume 2 at {_block}
+	loop all entities in radius 1.5 of {_block}:
+		loop-entity is not {_caster}
+		damage loop-entity by {_dmg}
+		freeze(loop-entity, 20)
+	wait 1 tick
+function Stone1(p: player, M: number): #Cosmic Rift
+	set {_loc} to location 0.5 meters above {_p}
+	play sound "item.trident.thunder" at volume 0.45 with pitch 0.65 at {_loc}
+	draw 120 of firework at {_loc} with offset vector(3, 3, 3) with extra 0.2
+	endRodCircle({_loc}, 10, 240)
+	loop all entities in radius 6 of {_loc}:
+		loop-entity is not {_p}
+		loop-entity is not a dropped item
+		play sound "entity.zombie.attack_wooden_door" with volume 0.65 at loop-entity
+		draw 20 wax_off at loop-entity with offset vector(0.65, 1.25, 0.65) with extra 1
+		
+	wait 6 ticks
+	endRodCircle({_loc}, 10, 240)
+	loop 5 times:
+		play sound "block.note_block.chime" at pitch 1.5 at {_p}
+		coloredParticleRing(location 9 meters above {_loc}, (loop-value / 1.25), 240, rgb(155, 115, 219))
+		if loop-value is 5:
+			strike lightning effect at location 0.5 meters below {_loc}
+		wait 2 ticks
+	endRodCircle({_loc}, 10, 240)
+	set {_loc2} to location 8.5 meters above {_loc}
+	wait 1 tick
+	loop 80 times:
+		if loop-value is divisible by 4:
+			endRodCircle({_loc}, 10, 240)
+		set {_num1} to random number between 1 and 10
+		junkrift({_loc2}, {_num1}, {_M}, {_p})
+		if loop-value is greater than 8:
+			set {_num2} to random number between 1 and 10
+			junkrift({_loc2}, {_num2}, {_M}, {_p})
+		wait 4 ticks
+	wait 3 ticks
+	play sound "block.bell.resonate" with volume 2.5 at {_loc}
+	wait 1.5 seconds
+	draw 60 wax_off at {_loc} with offset vector(2, 2.25, 2) with extra 1
+	draw 120 of end_rod at {_loc} with offset vector(3, 3, 3) with extra 0.2
+function endRodCircle(player: location, radius: number, amount: number):
+	set {_m} to 360 / {_amount}
+	loop {_amount} times:
+		set {_vector} to spherical vector radius {_radius}, yaw ({_m} * loop-value), pitch 0
+		draw 1 of end_rod at ({_player} ~ {_vector}) with extra 0.00
+function freeze(e: entity, time: number):
+	loop {_time} times:
+		teleport {_e} to {_e}
+		wait 1 ticks
+
+function coloredParticleRing(player: location, radius: number, amount: number, option: color, size: number=1):
+	set {_m} to 360 / {_amount}
+	loop {_amount} times:
+		set {_vector} to spherical vector radius {_radius}, yaw ({_m} * loop-value), pitch 0
+		draw 1 of dust using dustOption({_option},{_size}) at ({_player} ~ {_vector}) with extra 0.01
+function Velocitysound2(p: player):
+	play sound "entity.breeze.hurt" from player category at volume 0.5 with pitch 2 at {_p}
+	play sound "entity.breeze.shoot" from player category at volume 1 with pitch 1 at {_p}
+function Velocityimpact(p: player):
+	set {_hits::*} to (all entities in radius 3.5 of {_p} where [input != {_p}])
+
+	if size of {_hits::*} is 0:
+		delete {Hits::%{_p}'s uuid%}
+		stop
+	add 1 to {Hits::%{_p}'s uuid%}
+	set {_count} to {Hits::%{_p}'s uuid%}
+	set {_multiplier} to 1 + ({_count} * 1.2) # 1.5x, 2x, 2.5x, 3x, 3.5x
+	loop {_hits::*}:
+		damage loop-value by (1 * {_multiplier}) 
+		play sound "item.mace.smash_ground_heavy" from player category at volume 100 with pitch 1 at {_p}
+		play sound "block.trial_spawner.spawn_mob" from player category at volume 1 with pitch 1 at {_p}
+		draw 20 of dust using dustOption(rgb(0,102,102),1.5) at location 1 block above {_p} with offset vector(0.5,0.5,0.5)	
+	if {_count} >= 5:
+		Velocitylastlaunch({_p})
+		delete {Hits::%{_p}'s uuid%}
+		stop
+	Velocitybounce({_p})
+
+
+function Velocitybounce(p: player):
+	push {_p} upwards with speed 1.5
+	Velocitysound2({_p})
+	wait 1 second
+	push {_p} forwards at speed 2
+	
+	# Resume landing loop
+	Velocityland({_p})
+
+
+function Velocitylastlaunch(p: player):
+	# Push player backward at the end
+	push {_p} backwards with speed 1.5
+			
+function Moon2(p: player):
+	loop 300 times:
+		wait 1 tick	
+		set {_shape} to a circle with radius 6
+		set particle of {_shape} to 0 dust particle using dustOption(black, 2)
+		draw the shapes {_shape} at location 1 block above {_p}
+		apply haste tier 5 to {_p} for 1 second replacing existing effect		
+		loop all players within radius 6 of {_p}:
+			if loop-player is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-player:
+					apply mining fatigue tier 3 to loop-player for 1 second replacing existing effect
+					apply blindness tier 1 to loop-player for 1 second replacing existing effect	
+function thorn2(p: player):
+	loop 300 times:
+		wait 1 tick	
+		set {_shape} to a circle with radius 6
+		set particle of {_shape} to 0 dust particle using dustOption(green, 2)
+		draw the shapes {_shape} at location 1 block above {_p}	
+		loop all players within radius 6 of {_p}:
+			if loop-player is not {_p}:
+				if {Trusted::%{_p}'s uuid%::*} does not contain loop-player:
+					apply slowness tier 10 to loop-player for 1 second replacing existing effect				
+on damage:
+	if victim is blocking:
+		if {Shield::%victim's uuid%} is true:
+			draw 20 of dust using dustOption(rgb(0,0,102),1.5) at location 1 block above victim with offset vector(0.5,0.5,0.5)	
+			cancel event
+on disconnect:
+	set {Poison::%player's uuid%} to false	
+on damage of a player:
+	if attacker is a player:
+		if {Poison::%attacker's uuid%} is true:
+			apply poison tier 3 to victim for 3 seconds replacing existing effect
+function CritFrenzy(p: player, M: number): #Sweeping hit
+	loop 10 times:
+		draw 3 of crit at (location 1.5 meters in front of {_p}'s eyes) with extra 0.15
+		wait 1 tick
+	set {_loc} to (location 3 meters in front of {_p}'s eyes)
+	play sound "entity.player.attack.sweep" at {_p}
+	draw 9 of sweep_attack at {_loc} with offset vector(0.6 , 0, 2.2) with extra 4
+	loop all entities in radius 4 of {_loc}:
+		loop-entity is not {_p}
+		knockback loop-entity (direction from {_p} to loop-entity) with strength 1
+		play sound "entity.firework_rocket.blast" with volume 0.3 at loop-entity
+		absoluteDamage(loop-entity, {_p}, {_M})	
+
+on disconnect:
+	delete {CursedList::%player's uuid%::*}
+	delete {Curser::%player's uuid%}
+on damage:
+	if attacker is {Curser::%attacker's uuid%}:
+		if {CursedList::%attacker's uuid%::*} contains victim:
+			set damage to damage * 1.25
+function curse(p: player):
+	loop 10 times:
+		wait 1 second
+		draw 100 of dust using dustOption(rgb(179, 25, 153),1.5) at location 1 block above {_p} with offset vector(0.5,0.5,0.5)
+function beam(loc: location, p: player):
+	set {_distance} to 100
+	set {_spacing} to 1
+	set {_radius} to 2
+	set {_spawnLocation} to location 1 block above {_loc}
+	play sound "minecraft:entity.wither.shoot" with volume 5 and pitch 0.5 at {_spawnLocation}
+	loop {_distance} / {_spacing} times:
+		make 10 of dust using dustOption(rgb(0, 227, 238), 20) at {_spawnLocation} with offset vector(0.5, 0.5, 0.5) with force
+
+		make 10 of sculk soul at {_spawnLocation} with offset vector(2, 2, 2) with extra 0 with force
+
+		make 6 of end rod at {_spawnLocation} with force
+		
+
+		set {_angle} to loop-iteration * 2
+		set {_v} to spherical vector with radius {_radius} + 7, yaw yaw of {_spawnLocation} - 90 and pitch {_angle}
+		make 2 of dust using dustOption(rgb(245, 66, 215), 5) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+
+		set {_v} to spherical vector with radius {_radius} + 7, yaw yaw of {_spawnLocation} - 90 and pitch {_angle} + 90
+		make 2 of dust using dustOption(rgb(245, 66, 215), 5) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+	
+		set {_v} to spherical vector with radius {_radius} + 7, yaw yaw of {_spawnLocation} - 90 and pitch {_angle} + 180
+		make 2 of dust using dustOption(rgb(245, 66, 215), 5) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+	
+		set {_v} to spherical vector with radius {_radius} + 7, yaw yaw of {_spawnLocation} - 90 and pitch {_angle} + 270
+		make 2 of dust using dustOption(rgb(245, 66, 215), 5) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+
+
+		set {_angle} to loop-iteration * 4
+		set {_v} to spherical vector with radius {_radius} + 4, yaw yaw of {_spawnLocation} - 90 and pitch {_angle}
+		make 1 of dust using dustOption(rgb(0, 100, 93), 4) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+
+		set {_v} to spherical vector with radius {_radius} + 4, yaw yaw of {_spawnLocation} - 90 and pitch {_angle} + 180
+		make 1 of dust using dustOption(rgb(0, 100, 93), 4) at {_spawnLocation} ~ {_v} with offset vector(0.1,0.1,0.1) with force
+
+
+		set {_rightv} to vector from {_spawnLocation} to location 3 blocks right of {_spawnLocation}
+		set {_leftv} to vector from {_spawnLocation} to location 3 blocks left of {_spawnLocation}
+		set {_abovev} to vector from {_spawnLocation} to location 3 blocks above {_spawnLocation}
+		set {_underv} to vector from {_spawnLocation} to location 3 blocks under {_spawnLocation}
+
+		loop 30 times:
+			make 0 of snowflake at {_spawnLocation} with offset {_rightv} with extra 0.5 with force
+			make 0 of snowflake at {_spawnLocation} with offset {_leftv} with extra 0.5 with force
+			make 0 of snowflake at {_spawnLocation} with offset {_abovev} with extra 0.5 with force
+			make 0 of snowflake at {_spawnLocation} with offset {_underv} with extra 0.5 with force
+			
+
+		
+		if block at {_spawnLocation} is not air or light:
+			play sound "minecraft:item.mace.smash_ground_heavy" with volume 10 and pitch 0.5 at {_spawnLocation}
+			set pitch of {_spawnLocation} to 0 
+			set yaw of {_spawnLocation} to 0 
+			loop floor((2 * pi * 4) / 0.08) times:
+				set {_v} to spherical vector with radius 0.1, yaw (loop-iteration-2 * 360 / floor((2 * pi * 4) / 0.08)), pitch 0
+				set {_expandv} to {_v}
+				set vector length of {_expandv} to 2
+				draw 0 of end rod at {_spawnLocation} ~ {_v} with offset {_expandv} with extra 0.5 with force
+
+				rotate {_expandv} around z-axis by 30
+				draw 0 of end rod at {_spawnLocation} ~ {_v} with offset {_expandv} with extra 0.5 with force
+
+				rotate {_expandv} around z-axis by 120
+				draw 0 of end rod at {_spawnLocation} ~ {_v} with offset {_expandv} with extra 0.5 with force
+
+				set {_v} to spherical vector with radius 0.1, yaw (loop-iteration-2 * 360 / floor((2 * pi * 4) / 0.08)), pitch 0
+				set {_expandv} to {_v}
+				set vector length of {_expandv} to 2
+				rotate {_expandv} around z-axis by 90
+				draw 0 of end rod at {_spawnLocation} ~ {_v} with offset {_expandv} with extra 0.5 with force
+				loop all entities in radius 10 of {_spawnLocation}:
+					if loop-entity is not {_p}:
+						absoluteDamage(loop-entity, loop-entity, 5)
+			exit 1 loop
+		set {_spawnLocation} to location {_spacing} blocks infront of {_spawnLocation}
+		wait 1 tick if mod(loop-iteration, 3) is 0
+
+
+function summonMeteor(l: location):	
+	set {_v} to vector 30, 0, 30
+	set {_l2} to block 85 above {_l} ~ {_v}
+	set {_vector} to vector between {_l2} and {_l}'s location
+	set {_velocity} to vector 0, 0, 0
+	spawn armor stand at {_l2}
+	set {_fireball} to last spawned armor stand
+	set visibility of {_fireball} to false
+	while {_fireball} is alive:	
+		set {_vector} to vector between {_l2} and {_l}'s location
+		set {_fireball}'s velocity to {_velocity}
+		push {_fireball} {_vector} at speed 4
+		make 75 of smoke at {_fireball}
+		make 10 of flash at {_fireball}
+		make 35 of lava at {_fireball}
+		make 5 of explosion at {_fireball}
+
+		play sound "entity.zombie.infect" at volume 1 with pitch 0.5 at location of {_fireball}
+		if distance between {_fireball} and {_l} is less than or equal to 5:
+			loop all entities in radius 5 of {_l}:
+				absoluteDamage(loop-entity, loop-entity, 3.5)
+				create a fake explosion at {_l}
+				meteorPush(loop-entity, {_l})	
+				loop 40 times:
+					wait 1 tick
+					teleport loop-entity to loop-entity				
+			play sound "entity.zombie_villager.cure" at volume 1.5 with pitch 0.5 at {_l}
+			kill {_fireball}
+			stop
+		add 1 to {_t}
+		if {_t} = 100:
+			kill {_fireball}
+			stop			
+		wait 2 ticks
+
+		
+function meteorPush(p: entity, l: location):
+	push {_p} upwards at speed 0.5
+	wait 1 tick
+	push {_p} backwards at speed 1
+on disconnect:
+	reveal player
+function randomPrestige(p: player):
+	loop 30 times:
+		wait 5 ticks
+		play sound "block.note_block.pling" at volume 1 with pitch 1 at location of {_p}
+		set {_rando} to a random integer between 1 and 14
+		if {_rando} is 1:
+			send title name of {Crystal::Storm} to {_p} for 0.5 seconds
+		if {_rando} is 2:
+			send title name of {Crystal::Tide} to {_p} for 0.5 seconds
+		if {_rando} is 3:
+			send title name of {Crystal::Lumen} to {_p} for 0.5 seconds
+		if {_rando} is 4:
+			send title name of {Crystal::Latency} to {_p} for 0.5 seconds
+		if {_rando} is 5:
+			send title name of {Crystal::Inferno} to {_p} for 0.5 seconds
+		if {_rando} is 6:
+			send title name of {Crystal::Stone} to {_p} for 0.5 seconds
+		if {_rando} is 7:
+			send title name of {Crystal::Velocity} to {_p} for 0.5 seconds 
+		if {_rando} is 8:
+			send title name of {Crystal::Void} to {_p} for 0.5 seconds 
+		if {_rando} is 9:
+			send title name of {Crystal::Sculk} to {_p} for 0.5 seconds 
+		if {_rando} is 10:
+			send title name of {Crystal::Wrath} to {_p} for 0.5 seconds 
+		if {_rando} is 11:
+			send title name of {Crystal::Moon} to {_p} for 0.5 seconds 
+		if {_rando} is 12:
+			send title name of {Crystal::Glacier} to {_p} for 0.5 seconds 
+		if {_rando} is 13:
+			send title name of {Crystal::Brute} to {_p} for 0.5 seconds 
+		if {_rando} is 14:
+			send title name of {Crystal::Toxin} to {_p} for 0.5 seconds 
+	if {_rando} is 1:
+		set {Prestige::%{_p}'s uuid%} to "Storm"
+	if {_rando} is 2:
+		set {Prestige::%{_p}'s uuid%} to "Tide"
+	if {_rando} is 3:
+		set {Prestige::%{_p}'s uuid%} to "Lumen"
+	if {_rando} is 4:
+		set {Prestige::%{_p}'s uuid%} to "Latency"
+	if {_rando} is 5:
+		set {Prestige::%{_p}'s uuid%} to "Inferno"
+	if {_rando} is 6:
+		set {Prestige::%{_p}'s uuid%} to "Stone"
+	if {_rando} is 7:
+		set {Prestige::%{_p}'s uuid%} to "Velocity"
+	if {_rando} is 8:
+		set {Prestige::%{_p}'s uuid%} to "Void"
+	if {_rando} is 9:
+		set {Prestige::%{_p}'s uuid%} to "Sculk"
+	if {_rando} is 10:
+		set {Prestige::%{_p}'s uuid%} to "Wrath"
+	if {_rando} is 11:
+		set {Prestige::%{_p}'s uuid%} to "Moon"
+	if {_rando} is 12:
+		set {Prestige::%{_p}'s uuid%} to "Glacier"
+	if {_rando} is 13:
+		set {Prestige::%{_p}'s uuid%} to "Brute"
+	if {_rando} is 14:
+		set {Prestige::%{_p}'s uuid%} to "Toxin"
+function lifedrain(location1: location, location2: location, density: integer=10) :: locations:
+	set {_vector} to vector between {_location1} and {_location2}
+	add {_location1} to {_return::*}
+	loop {_density} times:
+		set vector length of {_vector} to loop-integer/{_density} * (distance between {_location1} and {_location2})
+		add ({_location1} ~ {_vector}) to {_return::*}
+	return {_return::*}
+#custom death message
+
+on right click:
+	if player's held item is {FrostScythe}:
+		if player has player's tool on cooldown:
+			cancel event
+		else:
+			if player's target is set:
+				set item cooldown of player's tool for player to 25 seconds
+				set {_p} to player
+				set {_t} to player's target
+				play sound "block.glass.break" at volume 999 with pitch 999 at location of player
+				draw 1 of dust using dustOption(cyan, 1) at lifedrain(player's eyes, {_t}, 100) with offset vector(0,0,0) with extra 0 with force 
+				spawn packed ice block display at (block at {_t}):
+					set {_d} to last spawned block display
+					set the display translation of {_d} to vector(-0.5,-2,-0.5)
+					set the display scale of {_d} to vector(1,2.5,1)
+				make {_d} ride {_t}
+				set {Frozen::%{_t}'s uuid%} to true
+				wait 5 seconds
+				kill {_d}
+				set {Frozen::%{_t}'s uuid%} to false
+	if player's held item is {LatencyDial}:
+		if player has player's tool on cooldown:
+			cancel event
+		else:
+			set item cooldown of player's tool for player to 1 minute and 30 seconds
+			set {_l} to player's location
+			loop all entities in radius 10 of {_l}:
+				if loop-entity is not player:
+					if {Trusted::%player's uuid%::*} does not contain loop-entity:
+						set tick rate of loop-entity to 10
+			loop 200 times:
+				wait 1 tick
+				if loop-number mod 40 = 0:
+					set {_time} to a sphere with radius 5
+					set particle of {_time} to 1 dust particle using dustOption(yellow, 1)
+					draw the shapes {_time} at {_l}
+			set tick rate of all players to 20
+on right click:
+	player is sneaking
+	if player's held item is {HydroReaver}:
+		if player has player's tool on cooldown:
+			cancel event
+		else:	
+			if player is in water:
+				set item cooldown of player's tool for player to 30 seconds
+				push player in direction of player at speed 2
+				play sound "item.trident.riptide_3" at volume 1 with pitch 1 at location of player
+on damage:
+	if attacker has attacker's tool on cooldown:
+		cancel event				
+on left click:
+	if {Prestige::%player's uuid%} is "Wrath":
+		if player's held item is obsidian:
+			if player has player's tool on cooldown:
+				cancel event
+			else:	
+				set item cooldown of player's tool for player to 80 seconds		
+				remove 1 of obsidian from player
+				set {_loc} to location of player
+				loop 100 times:
+					wait 1 tick
+					draw 4 of large smoke at location 1 block above {_loc} with offset vector(0.3, 0.5, 0.3) with extra 0 with force
+				teleport player to {_loc}
+				play sound "entity.illusioner.mirror_move" at volume 1 with pitch 1 at location of player
+on load:
+	set {Trance} to netherite axe named "&4&lTrance"
+    
+on right click:
+	if player's held item is {Trance}:
+		if player has player's tool on cooldown:
+			cancel event
+		else:
+			apply strength tier 2 to player for 10 seconds replacing existing effect
+			set item cooldown of player's tool for player to 100 seconds
+			play sound "entity.warden.roar" at volume 10 with pitch 1 to player
+			send "&4&lᴀᴄᴛɪᴠᴀᴛᴇᴅ ʙʟᴏᴏᴅ ʀᴜsʜ" to player
+			loop 200 times:
+				wait 1 tick
+				draw 5 of block using redstone block at location 1 block above player with offset vector(0.5, 0.5, 0.5) with extra 0            
+on disconnect:
+	set tick rate of player to 20
+on drop:
+	if event-item is {frostscythe}:
+		set glowing of last dropped item to true
+	if event-item is {Latencydial}:
+		set glowing of last dropped item to true
+function storm(p: player):
+	loop 10 times:
+		set {_loc} to {_p}'s location			
+		add 0.5 to {_r}
+		set {_storm} to a circle with radius {_r}
+		set particle of {_storm} to 10 dust particle using dustOption(yellow, 1)
+		draw the shapes {_storm} at {_loc}
+on player move:
+	if {Frozen::%player's uuid%} is true:	
+		cancel event
+function line(start: location, end: location, step: number = 10):: locations:
+	set {_v} to vector between {_start} and {_end}
+	loop {_step} times:
+		set vector length of {_v} to (distance between {_start} and {_end}) / {_step} * loop-counter
+		add {_start} ~ {_v} to {_l::*}
+	return {_l::*}
+
+function boom(p: player):  	
+	set {_loc} to location of {_p}
+	loop 40 times:
+		set {_loc} to location 0.7 infront of {_loc}
+		make 10 of sonic boom at {_loc}
+		loop all entities in radius 3 of {_loc}:
+			if loop-entity is not {_p}:
+				if {_Damaged::%{_p}'s uuid%::*} does not contain loop-entity:
+					if {Trusted::%{_p}'s uuid%::*} does not contain loop-entity:
+						absoluteDamage(loop-entity, {_p}, 5)				
+						add loop-entity to {_Damaged::%{_p}'s uuid%::*}
+on shoot:
+	if shooter's held item is {Labryinth}:
+		cancel event
+		projectile is an arrow
+		remove 1 arrow from shooter
+		set item cooldown of {Labryinth} for shooter to 30 seconds
+		play sound "entity.warden.sonic_boom" at volume 1 with pitch 1 at location of shooter
+		boom(shooter)
+	if shooter's offhand item is {Labryinth}:
+		cancel event
+		projectile is an arrow
+		remove 1 arrow from shooter
+		set item cooldown of {Labryinth} for shooter to 30 seconds
+		play sound "entity.warden.sonic_boom" at volume 1 with pitch 1 at location of shooter
+		boom(shooter)
+command /givemythic <text>:
+	permission: op	
+	trigger:
+		give player {prestigesmp::%arg-1%}
+on player press of jump key:
+	if player is not on ground:
+		if {Prestige::%player's uuid%} is "Void":
+			if {doublejump::%player's uuid%} is 0:
+				set velocity of player to vector(x of velocity of player, 0.75, z of velocity of player)
+				push player upwards with force 0.25
+				play sound "minecraft:entity.wind_charge.wind_burst" with pitch 0.75 at player
+				set {_splash} to a circle with radius 0.5
+				set particle of {_splash} to 10 dust particle using dustOption(purple, 0.5)
+				draw the shapes {_splash} at player
+				set {doublejump::%player's uuid%} to 10
+				loop 10 times:
+					wait 1 second
+					remove 1 from {doublejump::%player's uuid%}
+				send "&5Double Jump is now &aReady"
+			else if {doublejump::%player's uuid%} is not 0:
+				send "&5Void Double Jump on cooldown for &f&l%{doublejump::%player's uuid%}%"
+			if {doublejump::%player's uuid%} is not set:	
+				set {doublejump::%player's uuid%} to 0
+on disconnect:
+	set {doublejump::%player's uuid%} to 0
+on load:
+	set {eye::lux} to ender eye named "<##ddad22>Eye of Lux"
+on join:
+	if {PsychisStarted} is true:
+		if {VariantStart::%player's uuid%} is not true:
+			set {VariantStart::%player's uuid%} to true
+			randomPrestige(player)
+command /prestige-start:
+	permission: psychis.admin
+	trigger:
+		set {PsychisStarted} to true
+		loop all players:
+			randomPrestige(loop-player)
+			set {VariantStart::%loop-player's uuid%} to true	
+on break of iron ore, gold ore or copper ore or diamond ore or deepslate diamond ore or deepslate iron ore or deepslate gold ore or deepslate copper ore or cobblestone:
+	if {Prestige::%player's uuid%} is "Inferno":
+		clear drops
+		loop drops of event-block using player's tool:
+			if loop-item = raw iron:
+				add (item amount of loop-item) of iron ingot to {_i::*}
+			else if type of loop-item = 1 of raw gold:
+				add (item amount of loop-item) of gold ingot to {_i::*}
+			else if loop-item = raw copper:
+				add (item amount of loop-item) of copper ingot to {_i::*}
+			else:
+				add loop-value to {_i::*}
+	drop {_i::*} at event-block
+
+command /announce <text>:
+	trigger:
+		if player's name is "Biroe":
+			send title "&5&lPrestige SMP" with subtitle "colored arg-1" to all players																	#Lives
+command /withdraw-lives:
+	trigger:
+		if {Lives::%player's uuid%} is not less than 1:
+			remove 1 from {Lives::%player's uuid%}
+			send "<##D17B7B>You have lost a life!" to player
+			play sound "entity.allay.death" at volume 10 with pitch 1 to player               
+			if player can hold 1 bedrock:
+				give player {life}   
+			else:
+				drop 1 of {life} at location of player
+		else:
+			send "<##D17B7B>You cannot withdraw past this amount!"        
+command /lives:
+	trigger:
+		send "&eYou have <##99FF99>%({Lives::%player's uuid%} ? 0) + 3% <##99FF99>Lives"          
+on load:
+	set {Life} to nether star named "<##99FF99>Life" with lore "&7A second chance.."
+on right click:
+	if player's held item is {Life}:
+		if {Lives::%player's uuid%} is not 3:
+			add 1 to {Lives::%player's uuid%}
+			remove 1 of {Life} from player
+			send "<##99FF99>You have gained a life!" to player
+			play sound "block.amethyst_block.resonate" at volume 500 with pitch 1 to player
+		else:
+			send "<##99FF99>Maximum Lives!" to player 
+on join:
+	if {Lives::%player's uuid%} is not set:
+		set {Lives::%player's uuid%} to 1
+on death of a player:
+	if {Lives::%victim's uuid%} <= -3:
+		clear victim's inventory
+		ban victim due to "&bReason: &fOut of lives!" 
+		kick victim due to "&bReason: &fOut of lives!"  
+		broadcast "&b%victim% has lost all of their lives!"
+		add victim's uuid to {banned::*}
+	if {Lives::%attacker's uuid%} < 3:
+		add 1 to {Lives::%attacker's uuid%}
+		send "<##99FF99>You have gained a life!" to attacker
+		play sound "block.amethyst_block.resonate" at volume 500 with pitch 1 to attacker
+		remove 1 from {Lives::%victim's uuid%}
+		send "<##D17B7B>You have lost a life!" to victim
+		play sound "entity.allay.death" at volume 10 with pitch 1 to victim
+		stop
+	if {Lives::%attacker's uuid%} is 3:
+		drop 1 of {life} at location of victim
+		send "<##99FF99>You have gained a life!" to attacker
+		play sound "block.amethyst_block.resonate" at volume 500 with pitch 1 to attacker    
+		remove 1 from {Lives::%victim's uuid%}
+		send "<##D17B7B>You have lost a life!" to victim
+		play sound "entity.allay.death" at volume 10 with pitch 1 to victim
+		stop
+	  
+
+
+	
+on damage:
+	if attacker is a player:
+		if victim is not blocking:
+			if {Prestige::%attacker's uuid%} = "Velocity":
+				set {_fall} to attacker's fall distance 
+				if {_fall} > 4:
+					set {_damage} to {_fall} / 2
+					if {_damage} > 22: # cap damage
+						set {_damage} to 22
+					damage victim by {_damage}
+					play sound "item.mace.smash_ground" at attacker
+					draw 40 dust using dustOption(rgb(127, 0, 255), 1) at location of victim with offset vector(0.5, 0.5, 0.5)
+					if {_fall} is more than 10:
+						cancel event
+						push attacker upwards at speed 5
+						play sound "item.mace.smash_ground_heavy" at attacker
+						draw 1 explosion at location of victim with offset vector(0,0,0)
+command /tracker:
+	permission: op
+	trigger:
+		give player {tracker}    
+command /setlives <player> <integer>:
+	permission: op
+	trigger:
+		if arg-1 is set:
+			if arg-2 is set:
+				set {Lives::%arg-1's uuid%} to arg-2            
+
+################################################################
+################################################################
+################################################################
+#$$$$             "just code things                        $$$$#  
+#$$$$              the right way"                          $$$$#  
+#$$$$                  brutal                              $$$$#  
+################################################################
+#################[ MADE BY ITSNOTETHANN ]#######################
+################################################################
+on load:
+	initData()
+
+#$#> Commands <#$#
+command /getreviveitem:
+	permission: skript.admin
+	trigger:
+		give player 1 of {reviveItem}
+
+#$#> Revival Item <#$#
+on right click holding nether star:
+	if boolean tag "reviveItem" of custom nbt of player's held item is true:
+		openRevivalMenu(player)
+
+function openRevivalMenu(p: player):
+	set {-revivalMenu::%{_p}'s uuid%} to a chest inventory with 4 rows named "&5&lRevival Menu &r&8(%size of {banned::*} ? 0% Dead Players)"
+	loop {banned::*}:
+		delete {_player}
+		delete {_skull}
+		set {_player} to loop-value parsed as player
+		set {_player} to {_player} ? loop-value parsed as offline player
+		set {_skull} to skull of {_player} named "&e&l%{_player}%" with lore "&7Click to revive %{_player}%."
+		set string tag "uuid" of custom nbt of {_skull} to loop-value
+		set slot (loop-iteration - 1) of {-revivalMenu::%{_p}'s uuid%} to {_skull}
+		add 1 to {_counter}
+	if {_counter} isn't set:
+		set slot {revivalMenu::warningSlots::*} of {-revivalMenu::%{_p}'s uuid%} to barrier named "&c&lNo Dead Players" with lore "&7There are no dead players to revive."
+		set slot {revivalMenu::barrierSlots::*} of {-revivalMenu::%{_p}'s uuid%} to {dividerItem}
+	open {-revivalMenu::%{_p}'s uuid%} to {_p}
+
+on inventory click:
+	if event-inventory is {-revivalMenu::%player's uuid%}:
+		cancel event
+		if string tag "uuid" of custom nbt of event-slot is set:
+			close player's inventory
+			if player has 1 of {reviveItem}:
+				revivePlayer(player, string tag "uuid" of custom nbt of event-slot)
+				remove 1 of {reviveItem} from player
+			else:
+				send "&cYou need a Resurrection item to revive someone." to player
+
+###############################################
+#####$># DATA INITIALIZATION FUNCTIONS #<$#####
+###############################################
+
+local function initData():
+	initItemData()
+	initMenuData()
+
+local function initItemData():
+	set {reviveItem} to nether star named "<##99FF99>Resurrection" with lore "&7Right click to revive someone who has died."
+	set boolean tag "reviveItem" of custom nbt of {reviveItem} to true
+	set {dividerItem} to gray stained glass pane
+	hide tooltip of {dividerItem}
+
+local function initMenuData():
+	set {revivalMenu::warningSlots::*} to 3, 4, 5, 12, 13, 14, 21, 22, 23, 30, 31, 32
+	set {revivalMenu::barrierSlots::*} to 0, 1, 2, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 33, 34, 35
+
+################################################
+###########$># HELPER FUNCTIONS #<$#############
+################################################
+
+local function revivePlayer(p: player, uuid: string):
+	remove {_uuid} from {banned::*}
+	set {_player} to {_uuid} parsed as player
+	set {_player} to {_player} ? {_uuid} parsed as offline player
+	unban {_player}
+	set {Lives::%{_uuid}%} to 0
+	broadcast "&c%{_player}% has been revived by %{_p}%!"
+
+		

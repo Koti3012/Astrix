@@ -1,0 +1,123 @@
+# Ash is lowk him
+options:
+    max_speed_level: 3
+    min_speed_level: -3
+
+on join:
+    if {speed.%player%} is not set:
+        set {speed.%player%} to 0
+
+every 1 second:
+    loop all players:
+        if {speed.%loop-player%} > 0:
+            apply potion of speed {speed.%loop-player%} to loop-player for 3 seconds
+        else if {speed.%loop-player%} < 0:
+            apply potion of slowness abs({speed.%loop-player%}) to loop-player for 3 seconds
+        else:
+            execute console command "effect clear %loop-player% minecraft:speed"
+            execute console command "effect clear %loop-player% minecraft:slowness"
+
+command /withdrawspeed:
+    trigger:
+        if {speed.%player%} is -3:
+            send "&cᴡᴏᴡ, ʜᴏᴡ ᴅɪᴅ ʏᴏᴜ ᴇɴᴅ ᴜᴘ ɪɴ ᴛʜɪѕ ѕɪᴛᴜᴀᴛɪᴏɴ?"
+            stop
+        if {speed.%player%} > 0:
+            execute console command "effect clear %player% minecraft:speed"
+            subtract 1 from {speed.%player%}
+        else if {speed.%player%} <= 0:
+            execute console command "effect clear %player% minecraft:slowness"
+            subtract 1 from {speed.%player%}
+            if {speed.%player%} < {@min_speed_level}:
+                set {speed.%player%} to {@min_speed_level}
+
+        # Apply effects after withdrawal
+        if {speed.%player%} > 0:
+            apply potion of speed {speed.%player%} to player for 5 seconds
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ<#65C2CC>ʀ <#6FC3CA>ѕ<#79C5C8>ᴘ<#83C6C6>ᴇ<#8DC8C4>ᴇ<#97C9C2>ᴅ <#A0C5CB>ɪ<#A0C5CB>s <#A0C5CB>ɴ<#A0C5CB>ᴏ<#A0C5CB>ᴡ %{speed.%player%}%" to player
+        else if {speed.%player%} < 0:
+            apply potion of slowness abs({speed.%player%}) to player for 5 seconds
+            send title "<#FF2A2A>ʏ<#FF3939>ᴏ<#FF4848>ᴜ<#FF5757>ʀ <#FF6666>ѕ<#FF7575>ʟ<#FF8484>ᴏ<#FF9393>ᴡ<#FFA2A2>ɴ<#FFB1B1>ᴇ<#FFC0C0>ѕ<#FFCFCF>ѕ <#FFDEDE>ɪ<#FFEDED>s <#F8F8F8>%{speed.%player%}%" to player
+        else:
+            execute console command "effect clear %player% minecraft:speed"
+            execute console command "effect clear %player% minecraft:slowness"
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ <#65C2CC>ʜ<#6FC3CA>ᴀ<#79C5C8>ᴠ<#83C6C6>ᴇ <#8DC8C4>ɴ<#97C9C2>ᴏ <#A0C5CB>ѕ<#A0C5CB>ᴘ<#A0C5CB>ᴇ<#A0C5CB>ᴇ<#A0C5CB>ᴅ!" to player
+
+        if {speed.%player%} > -3:
+            give player prismarine_shard named "<#47BFD2>ѕ<#52C0D1>ᴘ<#5DC1D2>ᴇ<#68C2D3>ᴇ<#73C4D4>ᴅ <#7EC5D5>ᴇ<#89C6D6>ѕ<#94C7D7>ѕ<#9FC8D8>ᴇ<#A0C5CB>ɴ<#A0C5CB>ᴄ<#A0C5CB>ᴇ"
+
+on right click holding prismarine_shard:
+    if name of player's tool is "<#47BFD2>ѕ<#52C0D1>ᴘ<#5DC1D2>ᴇ<#68C2D3>ᴇ<#73C4D4>ᴅ <#7EC5D5>ᴇ<#89C6D6>ѕ<#94C7D7>ѕ<#9FC8D8>ᴇ<#A0C5CB>ɴ<#A0C5CB>ᴄ<#A0C5CB>ᴇ":
+        cancel event
+        if {speed.%player%} < {@max_speed_level}:
+            add 1 to {speed.%player%}
+
+        # Clear previous effects first
+        execute console command "effect clear %player% minecraft:speed"
+        execute console command "effect clear %player% minecraft:slowness"
+
+        # Apply updated effect
+        if {speed.%player%} > 0:
+            apply potion of speed {speed.%player%} to player for 5 seconds
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ<#65C2CC>ʀ <#6FC3CA>ѕ<#79C5C8>ᴘ<#83C6C6>ᴇ<#8DC8C4>ᴇ<#97C9C2>ᴅ <#A0C5CB>ɪ<#A0C5CB>s <#A0C5CB>ɴ<#A0C5CB>ᴏ<#A0C5CB>ᴡ %{speed.%player%}%" to player
+        else if {speed.%player%} < 0:
+            apply potion of slowness abs({speed.%player%}) to player for 5 seconds
+            send title "<#FF2A2A>ʏ<#FF3939>ᴏ<#FF4848>ᴜ<#FF5757>ʀ <#FF6666>ѕ<#FF7575>ʟ<#FF8484>ᴏ<#FF9393>ᴡ<#FFA2A2>ɴ<#FFB1B1>ᴇ<#FFC0C0>ѕ<#FFCFCF>ѕ <#FFDEDE>ɪ<#FFEDED>s <#F8F8F8>%{speed.%player%}%" to player
+        else:
+            execute console command "effect clear %player% minecraft:speed"
+            execute console command "effect clear %player% minecraft:slowness"
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ <#65C2CC>ʜ<#6FC3CA>ᴀ<#79C5C8>ᴠ<#83C6C6>ᴇ <#8DC8C4>ɴ<#97C9C2>ᴏ <#A0C5CB>ѕ<#A0C5CB>ᴘ<#A0C5CB>ᴇ<#A0C5CB>ᴇ<#A0C5CB>ᴅ!" to player
+
+        remove 1 of player's tool from player
+
+command /setspeed <player> <number>:
+    permission: setspeed.use
+    trigger:
+        if arg 2 is not a number:
+            send "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ<#65C2CC> ᴍ<#6FC3CA>ᴜ<#79C5C8>ѕ<#83C6C6>ᴛ <#8DC8C4>ᴇ<#97C9C2>ɴ<#A0C5CB>ᴛ<#A0C5CB>ᴇ<#A0C5CB>ʀ <#A0C5CB>ᴀ <#A0C5CB>ᴠ<#A0C5CB>ᴀ<#A0C5CB>ʟ<#A0C5CB>ɪ<#A0C5CB>ᴅ <#A0C5CB>ɴ<#A0C5CB>ᴜ<#A0C5CB>ᴍ<#A0C5CB>ʙ<#A0C5CB>ᴇ<#A0C5CB>ʀ!" to player
+            stop
+        if arg 2 > {@max_speed_level}:
+            send "<#47BFD2>ᴛ<#51BFD0>ʜ<#5BC0CE>ᴇ <#65C2CC>ᴍ<#6FC3CA>ᴀ<#79C5C8>x <#83C6C6>ѕ<#8DC8C4>ᴘ<#97C9C2>ᴇ<#A0C5CB>ᴇ<#A0C5CB>ᴅ <#A0C5CB>ʟ<#A0C5CB>ᴇ<#A0C5CB>ᴠ<#A0C5CB>ᴇ<#A0C5CB>ʟ <#A0C5CB>ɪ<#A0C5CB>s {@max_speed_level}!" to player
+            stop
+        if arg 2 < {@min_speed_level}:
+            send "<#47BFD2>ᴛ<#51BFD0>ʜ<#5BC0CE>ᴇ <#65C2CC>ᴍ<#6FC3CA>ɪ<#79C5C8>ɴ<#83C6C6>ɪ<#8DC8C4>ᴍ <#97C9C2>ѕ<#A0C5CB>ᴘ<#A0C5CB>ᴇ<#A0C5CB>ᴇ<#A0C5CB>ᴅ <#A0C5CB>ʟ<#A0C5CB>ᴇ<#A0C5CB>ᴠ<#A0C5CB>ᴇ<#A0C5CB>ʟ <#A0C5CB>ɪ<#A0C5CB>s {@min_speed_level}!" to player
+            stop
+        set {speed.%arg-1%} to arg 2
+
+        # Clear previous effects first
+        execute console command "effect clear %arg-1% minecraft:speed"
+        execute console command "effect clear %arg-1% minecraft:slowness"
+
+        # Apply new effect
+        if {speed.%arg-1%} > 0:
+            apply potion of speed {speed.%arg-1%} to arg-1 for 5 seconds
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ <#65C2CC>ʀ<#6FC3CA> ѕ<#79C5C8>ᴘ<#83C6C6>ᴇ<#8DC8C4>ᴇ<#97C9C2>ᴅ <#A0C5CB>ɪ<#A0C5CB>s <#A0C5CB>ɴ<#A0C5CB>ᴏ<#A0C5CB>w +%{speed.%arg-1%}%" to arg-1
+        else if {speed.%arg-1%} < 0:
+            apply potion of slowness abs({speed.%arg-1%}) to arg-1 for 5 seconds
+            send title "<#FF2A2A>ʏ<#FF3939>ᴏ<#FF4848>ᴜ<#FF5757>ʀ <#FF6666>ѕ<#FF7575>ʟ<#FF8484>ᴏ<#FF9393>ᴡ<#FFA2A2>ɴ<#FFB1B1>ᴇ<#FFC0C0>ѕ<#FFCFCF>ѕ <#FFDEDE>ɪ<#FFEDED>s <#F8F8F8>%{speed.%arg-1%}%" to arg-1
+        else:
+            send title "<#47BFD2>ʏ<#51BFD0>ᴏ<#5BC0CE>ᴜ <#65C2CC>ʜ<#6FC3CA>ᴀ<#79C5C8>ᴠ<#83C6C6>ᴇ <#8DC8C4>ɴ<#97C9C2>ᴏ <#A0C5CB>ѕ<#A0C5CB>ᴘ<#A0C5CB>ᴇ<#A0C5CB>ᴇ<#A0C5CB>ᴅ!" to arg-1
+
+every 1 tick:
+    loop all players:
+        if {speed.%loop-player%} > 0:
+            send action bar "<#47BFD2>ѕ<#52C0D1>ᴘ<#5DC1D2>ᴇ<#68C2D3>ᴇ<#73C4D4>ᴅ: <#7EC5D5>+%{speed.%loop-player%}%" to loop-player
+        else if {speed.%loop-player%} < 0:
+            send action bar "<#FF2A2A>ѕ<#FF3939>ʟ<#FF4848>ᴏ<#FF5757>ᴡ<#FF6666>ɴ<#FF7575>ᴇ<#FF8484>ѕ<#FF9393>ѕ: <#FFAAAA>%{speed.%loop-player%}%" to loop-player
+        else:
+            send action bar "<#47BFD2>ѕ<#52C0D1>ᴘ<#5DC1D2>ᴇ<#68C2D3>ᴇ<#73C4D4>ᴅ: <#7EC5D5>0" to loop-player
+
+# Death system with speed drop and essence
+on death:
+    if victim is a player:
+
+        # PERMA BAN at -3
+        if {speed.%victim%} = -3:
+            execute console command "ban %victim% &cʏᴏᴜ ʜᴀᴠᴇ ʙᴇᴇɴ ᴘᴇʀᴍᴀɴᴇɴᴛʟʏ ʙᴀɴɴᴇᴅ! ʏᴏᴜ ᴄᴀɴ ɢᴇᴛ ʀᴇᴠɪᴠᴇᴅ ᴛʜʀᴏᴜɢʜ ᴛʜᴇ ʙᴇᴀᴄᴏɴ."
+            broadcast "&c%victim% ʜᴀѕ ʙᴇᴇɴ ᴘᴇʀᴍᴀɴᴇɴᴛʟʏ ʙᴀɴɴᴇᴅ ꜰᴏʀ ʀᴇᴀᴄʜɪɴɢ -3 ѕᴘᴇᴇᴅ"
+            stop
+
+        # Drop speed essence and decrease speed
+        drop prismarine_shard named "<#47BFD2>ѕ<#52C0D1>ᴘ<#5DC1D2>ᴇ<#68C2D3>ᴇ<#73C4D4>ᴅ <#7EC5D5>ᴇ<#89C6D6>ѕ<#94C7D7>ѕ<#9FC8D8>ᴇ<#A0C5CB>ɴ<#A0C5CB>ᴄ<#A0C5CB>ᴇ" at victim's location
+        if {speed.%victim%} > {@min_speed_level}:
+            subtract 1 from {speed.%victim%}

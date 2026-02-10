@@ -1,0 +1,7 @@
+command /size [<number>]:
+	aliases: changesize
+	permission: *
+	trigger:
+		if arg-1 is set:
+			execute console command "attribute %player% minecraft:generic.scale base set %arg-1%"
+			send "&7You are now &c%arg-1%%% &7the size of a normal player!" to player

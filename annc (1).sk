@@ -1,0 +1,10 @@
+command /announce [<text>]:
+    permission: verdant.core.announce
+    permission message: &dNo bro
+    trigger:
+        if arg-1 is set:
+            play sound "ENTITY_ENDERMAN_AMBIENT" at pitch 2 to player
+            send title "&cᴀɴɴᴏᴜɴᴄᴇᴍᴇɴᴛ" to all players for 3 seconds
+            send subtitle colored arg-1 to all players for 5 seconds
+        else:
+            send "&bWrite smth"

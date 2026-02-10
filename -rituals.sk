@@ -1,0 +1,110 @@
+#Rituals made by Ashd667
+command /startritual:
+    permission: op
+    trigger:
+        if {ritual.item} is set:
+            send "&cA ritual is already in progress!"
+            stop
+
+        set {_item} to player's tool
+        if name of {_item} is not set:
+            set {_itemname} to type of {_item}
+        else:
+            set {_itemname} to name of {_item}
+
+        set {_x} to rounded player's x-coordinate
+        set {_y} to rounded player's y-coordinate
+        set {_z} to rounded player's z-coordinate
+
+        set {_title} to "%{_itemname}% &7at &f%{_x}% %{_y}% %{_z}%"
+        set {_ritual} to boss bar with id "ritualbar" with title {_title}
+        set bar color of {_ritual} to purple
+        set bar progress of {_ritual} to 1000
+        add all players to {_ritual}
+
+        play sound "block.end_portal.spawn" at volume 1 at pitch 0 to all players
+
+        broadcast "&d&lA ritual for %{_itemname}%&d&l has started at %{_x}%, %{_y}%, %{_z}%!"
+
+        set {_loc} to player's location
+        add 1 to y-coordinate of {_loc}
+
+        drop {_item} at {_loc} without velocity
+        set {ritual.item} to last dropped item
+        set gravity of {ritual.item} to off
+        prevent {ritual.item} from naturally despawning
+        set pickup delay of {ritual.item} to 1 hour
+        set {ritual.loc} to {_loc}
+
+        set {_ritualtimer.minutes} to 30
+        set {_ritualtimer.seconds} to 0
+
+        spawnRitualParticles()
+
+        loop 1800 times:
+            remove 0.0555555556 from bar progress of {_ritual}
+            remove 1 from {_ritualtimer.seconds}
+
+            if {_ritualtimer.seconds} < 0:
+                remove 1 from {_ritualtimer.minutes}
+                set {_ritualtimer.seconds} to 59
+
+            if {_ritualtimer.seconds} < 10:
+                set {_ritualtimer.display.seconds} to "0%{_ritualtimer.seconds}%"
+            else:
+                set {_ritualtimer.display.seconds} to "%{_ritualtimer.seconds}%"
+
+            set display name of {ritual.item} to "&6&l%{_ritualtimer.minutes}%:%{_ritualtimer.display.seconds}%"
+            wait 1 second
+
+        broadcast "&6&lThe ritual for %{_itemname}%&6&l has finished at %{_x}%, %{_y}%, %{_z}%!"
+        
+        set pickup cooldown of {ritual.item} To 3 seconds
+        set gravity of {ritual.item} to on
+        set display name of {ritual.item} to "%{_itemname}% &6&l- Ritual Finished"
+
+        remove all players from {_ritual}
+        delete boss bar with id "ritualbar"
+
+        wait a tick
+        delete {ritual.item}
+        delete {ritual.loc}
+
+
+every tick:
+    if {ritual.item} is set:
+        teleport {ritual.item} to {ritual.loc}
+
+
+function spawnRitualParticles():
+    loop 7200 times:
+        loop 15 times:
+            draw the shape (circle with radius 4) at {ritual.loc}:
+                set event-shape's particle to dust particle using dustOption(purple, 1)
+            draw the shape (circle with radius 4) at {ritual.loc}:
+                set event-shape's particle to dust particle using dustOption(light purple, 1)
+            wait 5 ticks
+
+
+command /stopritual:
+    permission: op
+    trigger:
+        remove all players from boss bar with id "ritualbar"
+        delete boss bar with id "ritualbar"
+        delete {ritual.item}
+        delete {ritual.loc}
+        delete {_ritualtimer.minutes}
+        delete {_ritualtimer.seconds}
+        delete {_ritualtimer.display.seconds}
+
+        broadcast "&fThe mythic ritual has abruptly ended!"
+
+
+command /fix:
+    permission: op
+    trigger:
+        if {ritual.ended} is true:
+            set {ritual.stoploop} to true
+            send "&aThe ritual has already ended."
+        else:
+            send "&cThe ritual is still running or has not been started."

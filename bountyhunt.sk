@@ -1,0 +1,44 @@
+# Bounty System by Ashd667
+
+options:
+  bounty-prefix: &c[&6Bounty&c] &f
+
+command /bounty [<text>] [<offline player>]:
+  permission: op
+  permission message: {@bounty-prefix}&cYou must be OP to use this command!
+  trigger:
+    if arg-1 is "remove":
+      if arg-2 is not set:
+        send "{@bounty-prefix}&cUsage: /bounty remove <player>"
+        stop
+      if {bounty::%uuid of arg-2%} is not set:
+        send "{@bounty-prefix}&eNo bounty found on &c%arg-2%&e!"
+        stop
+      delete {bounty::%uuid of arg-2%}
+      send "{@bounty-prefix}&aBounty removed from &e%arg-2%&a."
+      broadcast "{@bounty-prefix}&eThe bounty on &c%arg-2%&e has been removed."
+      stop
+
+    if arg-1 is "cordleak":
+      if arg-2 is not set:
+        send "{@bounty-prefix}&cUsage: /bounty cordleak <player>"
+        stop
+      if {bounty::%uuid of arg-2%} is not set:
+        send "{@bounty-prefix}&eNo bounty found on &c%arg-2%&e!"
+        stop
+      if arg-2 is not online:
+        send "{@bounty-prefix}&cThat player is not online!"
+        stop
+      set {_loc} to location of arg-2
+      broadcast "{@bounty-prefix}&eCoordinates for &c%arg-2%&e: &f%x of {_loc}%, %y of {_loc}%, %z of {_loc}%"
+      play sound "entity.enderman.teleport" to all players
+      stop
+
+    # Default bounty placement
+    if arg-1 is not set:
+      send "{@bounty-prefix}&cUsage: /bounty <player>, /bounty remove <player>, /bounty cordleak <player>"
+      stop
+
+    set {bounty::%uuid of arg-1 parsed as offline player%} to true
+    send "{@bounty-prefix}&aBounty placed on &e%arg-1%&a!"
+    broadcast "{@bounty-prefix}&eA bounty has been placed on &c%arg-1%&e!"
